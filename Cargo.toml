@@ -1,0 +1,10 @@
+[package]
+name = "dness"
+version = "0.1.0"
+authors = ["Nick Babcock <nbabcock19@hotmail.com>"]
+
+[dependencies]
+trust-dns-resolver = "0.10"
+reqwest = "0.9"
+serde = "1.0"
+serde_derive = "1.0"
