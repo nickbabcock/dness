@@ -1,0 +1,21 @@
+# How verbose the log is. Commons values are Error, Warn, Info, Debug, Trace
+log_level = "Warn"
+
+[[domains]]
+type = "cloudflare"
+email = "admin@example.com"
+key = "deadbeef"
+zone = "example.com"
+records = [
+    "n.example.com"
+]
+
+[[domains]]
+type = "cloudflare"
+email = "admin@example.com"
+key = "deadbeef"
+zone = "example2.com"
+records = [
+    "n.example2.com",
+    "n2.example2.com"
+]

@@ -1,0 +1,8 @@
+[[domains]]
+type = "cloudflare"
+email = "a@b.com"
+key = "deadbeef"
+zone = "example.com"
+records = [
+    "n.example.com"
+]

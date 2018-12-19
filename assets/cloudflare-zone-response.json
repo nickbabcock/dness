@@ -1,0 +1,24 @@
+{
+  "result": [
+    {
+      "id": "aaaabbbb",
+      "name": "example.com",
+      "status": "active",
+      "paused": false,
+      "type": "full",
+      "modified_on": "2018-12-18T16:18:21.981028Z",
+      "created_on": "2015-03-12T23:13:58.893474Z",
+      "activated_on": "2015-03-21T07:33:12.523886Z"
+    }
+  ],
+  "result_info": {
+    "page": 1,
+    "per_page": 20,
+    "total_pages": 1,
+    "count": 1,
+    "total_count": 1
+  },
+  "success": true,
+  "errors": [],
+  "messages": []
+}
