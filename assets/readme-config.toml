@@ -2,14 +2,26 @@
 log_level = "Warn"
 
 [[domains]]
+# We denote that our domain is managed by cloudflare
 type = "cloudflare"
+
+# The email address registered in cloudflare that is authorized to update dns
+# records
 email = "admin@example.com"
+
+# The cloudflare key can be found in the domain overview, in "Get your API key"
+# and view "Global API Key" (or another key as appropriate)
 key = "deadbeef"
+
+# The zone is the domain name
 zone = "example.com"
+
+# List of A records found under the DNS tab that should be updated
 records = [
     "n.example.com"
 ]
 
+# More than one domain can be specified in a config!
 [[domains]]
 type = "cloudflare"
 email = "admin@example.com"

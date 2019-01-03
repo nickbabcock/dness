@@ -29,8 +29,44 @@ To maximize initial flexibility, dness is not a daemon. Instead it relies on the
 
 ### Supported Dynamic DNS Services
 
-- Cloudflare
+#### Cloudflare
+
+```toml
+[[domains]]
+# We denote that our domain is managed by cloudflare
+type = "cloudflare"
+
+# The email address registered in cloudflare that is authorized to update dns
+# records
+email = "admin@example.com"
+
+# The cloudflare key can be found in the domain overview, in "Get your API key"
+# and view "Global API Key" (or another key as appropriate)
+key = "deadbeef"
+
+# The zone is the domain name
+zone = "example.com"
+
+# List of A records found under the DNS tab that should be updated
+records = [
+    "n.example.com"
+]
+```
+
+Cloudflare dynamic dns service works in three steps:
+
+1. Send GET to translate the zone (example.com) to cloudflare's id
+2. Send GET to find all the domains under the zone and their sub-ids
+  - Cloudflare paginates the response to handle many subdomains
+  - It is possible to query for individual domains but as long as more
+    than one desired domain in each page -- this methods cuts down requests
+3. Each desired domain in the config is checked to ensure that it is set to our address. In
+   this way cloudflare is our cache (to guard against nefarious users updating out of band)
 
 ### Supported WAN IP Resolvers
 
-- OpenDNS
+No other WAN IP resolvers are available, but it certainly possible to add other DNS or HTTP resolvers in the future.
+
+#### OpenDNS
+
+No configuration option are available for OpenDNS.

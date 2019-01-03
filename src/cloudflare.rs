@@ -338,7 +338,8 @@ impl<'a> CloudflareClient<'a> {
 ///    - Cloudflare paginates the response to handle many subdomains
 ///    - It is possible to query for individual domains but as long as more
 ///      than one desired domain in each page -- this methods cuts down requests
-///  3. Each desired domain seen in is checked to ensure that it is set to our address.
+///  3. Each desired domain in the config is checked to ensure that it is set to our address. In
+///     this way cloudflare is our cache (to guard against nefarious users updating out of band)
 pub fn update_domains(
     client: &reqwest::Client,
     config: &CloudflareConfig,
