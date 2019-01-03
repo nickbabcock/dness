@@ -26,6 +26,7 @@ use std::error;
 use std::fmt::Write;
 use std::time::Instant;
 use structopt::StructOpt;
+use log::LevelFilter;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "dnsess")]
@@ -48,6 +49,12 @@ fn log_err<E: error::Error>(context: &str, err: &E) {
     error!("{}", msg);
 }
 
+fn init_logging(lvl: LevelFilter) {
+    env_logger::Builder::from_default_env()
+        .filter_level(lvl)
+        .init();
+}
+
 fn main() {
     let start = Instant::now();
     let opt = Opt::from_args();
@@ -57,6 +64,7 @@ fn main() {
     let config = match parse_config(config_file) {
         Ok(c) => c,
         Err(e) => {
+            init_logging(LevelFilter::Warn);
             let desc = format!("could not configure application from: {}", &config_file);
             log_err(&desc, &e);
             std::process::exit(1)
@@ -64,9 +72,7 @@ fn main() {
     };
 
     // setup logging
-    env_logger::Builder::from_default_env()
-        .filter_level(config.log_level)
-        .init();
+    init_logging(config.log_level);
 
     // Resolve our WAN IP
     let start_resolve = Instant::now();
