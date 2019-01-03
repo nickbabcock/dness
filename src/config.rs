@@ -39,22 +39,29 @@ impl fmt::Display for ConfigError {
     }
 }
 
+#[derive(Deserialize, Clone, PartialEq, Debug, Default)]
+pub struct DnsConfig {
+    #[serde(default)]
+    pub log: LogConfig,
+
+    #[serde(default)]
+    pub domains: Vec<DomainConfig>,
+}
+
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+pub struct LogConfig {
+    #[serde(default = "default_log_level")]
+    pub level: LevelFilter
+}
+
 fn default_log_level() -> LevelFilter {
     LevelFilter::Info
 }
 
-#[derive(Deserialize, Clone, PartialEq, Debug)]
-pub struct DnsConfig {
-    #[serde(default = "default_log_level")]
-    pub log_level: LevelFilter,
-    pub domains: Vec<DomainConfig>,
-}
-
-impl Default for DnsConfig {
-    fn default() -> DnsConfig {
-        DnsConfig {
-            log_level: default_log_level(),
-            domains: Default::default(),
+impl Default for LogConfig {
+    fn default() -> LogConfig {
+        LogConfig {
+            level: default_log_level(),
         }
     }
 }
@@ -94,13 +101,29 @@ mod tests {
     use super::*;
 
     #[test]
+    fn deserialize_config_empty() {
+        let config: DnsConfig = toml::from_str("").unwrap();
+        assert_eq!(
+            config,
+            DnsConfig {
+                log: LogConfig {
+                    level: LevelFilter::Info,
+                },
+                domains: vec![]
+            }
+        )
+    }
+
+    #[test]
     fn deserialize_config_simple() {
         let toml_str = &include_str!("../assets/base-config.toml");
         let config: DnsConfig = toml::from_str(toml_str).unwrap();
         assert_eq!(
             config,
             DnsConfig {
-                log_level: LevelFilter::Info,
+                log: LogConfig {
+                    level: LevelFilter::Info,
+                },
                 domains: vec![DomainConfig::Cloudflare(CloudflareConfig {
                     email: String::from("a@b.com"),
                     key: String::from("deadbeef"),
@@ -118,7 +141,9 @@ mod tests {
         assert_eq!(
             config,
             DnsConfig {
-                log_level: LevelFilter::Warn,
+                log: LogConfig {
+                    level: LevelFilter::Debug,
+                },
                 domains: vec![
                     DomainConfig::Cloudflare(CloudflareConfig {
                         email: String::from("admin@example.com"),

@@ -1,5 +1,6 @@
+[log]
 # How verbose the log is. Commons values are Error, Warn, Info, Debug, Trace
-log_level = "Warn"
+level = "Debug"
 
 [[domains]]
 # We denote that our domain is managed by cloudflare

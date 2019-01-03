@@ -93,7 +93,7 @@ fn main() {
     let opt = Opt::from_args();
     let config = init_configuration(&opt.config_file);
 
-    init_logging(config.log_level);
+    init_logging(config.log.level);
 
     let start_resolve = Instant::now();
     let addr = resolve_ip();
