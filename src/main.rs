@@ -53,6 +53,7 @@ fn log_err<E: error::Error>(context: &str, err: &E) {
 fn init_logging(lvl: LevelFilter) {
     env_logger::Builder::from_default_env()
         .filter_level(lvl)
+        .target(env_logger::Target::Stdout)
         .init();
 }
 
