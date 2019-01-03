@@ -2,11 +2,13 @@
 
 ***Finesse with dness: a dynamic dns client***
 
+[![Build Status](https://travis-ci.org/nickbabcock/dness.svg?branch=master)](https://travis-ci.org/nickbabcock/dness) [![Build status](https://ci.appveyor.com/api/projects/status/dic59x43w2g19536?svg=true)](https://ci.appveyor.com/project/nickbabcock/dness)
+
 ---
 
 ## Motivation
 
-When one has a server that is subjected to unpredictable IP address changes, such as at home or elsewhere, one experiences unexpected downtime. Instead of paying for a static IP address, one can employ a dynamic dns client on said server, which will update the IP address on the dns server.
+When one has a server that is subjected to unpredictable IP address changes, such as at home or elsewhere, one experiences unexpected downtime. Instead of paying for a static IP address, one can employ a dynamic dns client on said server, which will update the [WAN](https://en.wikipedia.org/wiki/Wide_area_network) IP address on the dns server.
 
 There are plenty of dynamic dns clients, including the venerable [ddclient](https://github.com/ddclient/ddclient), but troublesome installation + dependency resolution, and cache format errors have left much to be desired. Other solutions fall short, so dness was created with the following goals:
 
@@ -26,6 +28,67 @@ There are plenty of dynamic dns clients, including the venerable [ddclient](http
 To maximize initial flexibility, dness is not a daemon. Instead it relies on the host's scheduling (cron, systemd timers, windows scheduler). Future updates may add daemon functionality.
 
 ## Configuration
+
+No configuration file is necessary when only the WAN IP is desired.
+
+```bash
+./dness
+```
+
+Sample output:
+
+```
+[INFO  trust_dns_proto::xfer::dns_exchange] sending message via: UDP(208.67.220.220:53)
+[INFO  dness] resolved address to 256.256.256.256 in 23ms
+[INFO  dness] processed all: (updated: 0, already current: 0, missing: 0) in 29ms
+```
+
+### Sample Configuration
+
+But dness can do more than resolve one's WAN IP. Below is a sample configuration (dness.conf) that should cover most needs:
+
+```toml
+[log]
+# How verbose the log is. Commons values are Error, Warn, Info, Debug, Trace
+level = "Debug"
+
+[[domains]]
+# We denote that our domain is managed by cloudflare
+type = "cloudflare"
+
+# The email address registered in cloudflare that is authorized to update dns
+# records
+email = "admin@example.com"
+
+# The cloudflare key can be found in the domain overview, in "Get your API key"
+# and view "Global API Key" (or another key as appropriate)
+key = "deadbeef"
+
+# The zone is the domain name
+zone = "example.com"
+
+# List of A records found under the DNS tab that should be updated
+records = [
+    "n.example.com"
+]
+
+# More than one domain can be specified in a config!
+[[domains]]
+type = "cloudflare"
+email = "admin@example.com"
+key = "deadbeef"
+zone = "example2.com"
+records = [
+    "n.example2.com",
+    "n2.example2.com"
+]
+```
+
+Execute with configuration:
+
+```
+./dness -c dness.conf
+```
 
 ### Supported Dynamic DNS Services
 
@@ -69,4 +132,4 @@ No other WAN IP resolvers are available, but it certainly possible to add other 
 
 #### OpenDNS
 
-No configuration option are available for OpenDNS.
+No configuration option are available for OpenDNS. It resolves IPv4 addresses by querying "myip.opendns.com" against resolver1.opendns.com and resolver2.opendns.com.
