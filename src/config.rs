@@ -50,6 +50,15 @@ pub struct DnsConfig {
     pub domains: Vec<DomainConfig>,
 }
 
+impl Default for DnsConfig {
+    fn default() -> DnsConfig {
+        DnsConfig {
+            log_level: default_log_level(),
+            domains: Default::default(),
+        }
+    }
+}
+
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 #[serde(tag = "type")]
 #[serde(rename_all = "lowercase")]

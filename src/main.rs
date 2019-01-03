@@ -17,22 +17,23 @@ mod config;
 mod dns;
 mod iplookup;
 
-use config::{parse_config, DomainConfig};
+use config::{parse_config, DnsConfig, DomainConfig};
 use iplookup::lookup_ip;
 
 use chrono::Duration;
 use dns::Updates;
+use log::LevelFilter;
 use std::error;
 use std::fmt::Write;
+use std::net::Ipv4Addr;
 use std::time::Instant;
 use structopt::StructOpt;
-use log::LevelFilter;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "dnsess")]
 struct Opt {
     #[structopt(short = "c", long = "config")]
-    config_file: String,
+    config_file: Option<String>,
 }
 
 fn log_err<E: error::Error>(context: &str, err: &E) {
@@ -55,37 +56,55 @@ fn init_logging(lvl: LevelFilter) {
         .init();
 }
 
-fn main() {
-    let start = Instant::now();
-    let opt = Opt::from_args();
-
-    // Parse the toml configuration file
-    let config_file = &opt.config_file;
-    let config = match parse_config(config_file) {
-        Ok(c) => c,
-        Err(e) => {
-            init_logging(LevelFilter::Warn);
-            let desc = format!("could not configure application from: {}", &config_file);
-            log_err(&desc, &e);
-            std::process::exit(1)
+/// Parses the TOML configuration. If no configuration file is present, the default configuration
+/// is returned so that the WAN IP can still be logged on execution. If there is an error parsing
+/// the configuration file, exit with a non-zero status code.
+fn init_configuration(file: &Option<String>) -> DnsConfig {
+    if let Some(ref config_file) = file {
+        match parse_config(&config_file) {
+            Ok(c) => c,
+            Err(e) => {
+                // If there is an error during configuration, we assume a log level of Warn so that
+                // the user will see the error printed.
+                init_logging(LevelFilter::Warn);
+                let desc = format!("could not configure application from: {}", &config_file);
+                log_err(&desc, &e);
+                std::process::exit(1)
+            }
         }
-    };
+    } else {
+        Default::default()
+    }
+}
 
-    // setup logging
-    init_logging(config.log_level);
-
-    // Resolve our WAN IP
-    let start_resolve = Instant::now();
-    let addr = match lookup_ip() {
+/// Resolves the WAN IP or exits with a non-zero status code
+fn resolve_ip() -> Ipv4Addr {
+    match lookup_ip() {
         Ok(c) => c,
         Err(e) => {
             log_err("could not successfully resolve IP", &e);
             std::process::exit(1)
         }
-    };
+    }
+}
+
+fn main() {
+    let start = Instant::now();
+    let opt = Opt::from_args();
+    let config = init_configuration(&opt.config_file);
+
+    init_logging(config.log_level);
+
+    let start_resolve = Instant::now();
+    let addr = resolve_ip();
     info!("resolved address to {} in {}", addr, elapsed(start_resolve));
 
+    // Use a single HTTP client when updating dns records so that connections can be reused
     let http_client = reqwest::Client::new();
+
+    // Keep track of any failures in ensuring current DNS records. We don't want to fail on the
+    // first error, as subsequent domains listed in the config can still be valid, but if there
+    // were any failures, we still need to exit with a non-zero exit code
     let mut failure = false;
     let mut total_updates = Updates::default();
 
