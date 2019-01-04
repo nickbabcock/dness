@@ -2,6 +2,12 @@
 name = "dness"
 version = "0.1.0"
 authors = ["Nick Babcock <nbabcock19@hotmail.com>"]
+description = "a dynamic dns client"
+homepage = "https://github.com/nickbabcock/dness"
+repository = "https://github.com/nickbabcock/dness"
+publish = false
+readme = "README.md"
+license = "MIT"
 
 [dependencies]
 trust-dns-resolver = "0.10"
@@ -25,3 +31,13 @@ features = ["serde"]
 version = "0.6"
 default-features = false
 features = ["termcolor", "atty", "regex"]
+
+[package.metadata.deb]
+extended-description = """dness is a command line dynamic dns client"""
+depends = "$auto, libssl"
+section = "utility"
+priority = "optional"
+assets = [
+    ["target/release/dness", "usr/local/bin/", "755"],
+    ["assets/bare-config.toml", "etc/dness/dness.conf", "600"],
+]
