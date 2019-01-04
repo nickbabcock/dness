@@ -51,7 +51,7 @@ pub struct DnsConfig {
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct LogConfig {
     #[serde(default = "default_log_level")]
-    pub level: LevelFilter
+    pub level: LevelFilter,
 }
 
 fn default_log_level() -> LevelFilter {
