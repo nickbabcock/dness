@@ -120,9 +120,9 @@ Cloudflare dynamic dns service works in three steps:
 
 1. Send GET to translate the zone (example.com) to cloudflare's id
 2. Send GET to find all the domains under the zone and their sub-ids
-  - Cloudflare paginates the response to handle many subdomains
-  - It is possible to query for individual domains but as long as more
-    than one desired domain in each page -- this methods cuts down requests
+   - Cloudflare paginates the response to handle many subdomains
+   - It is possible to query for individual domains but as long as more
+     than one desired domain in each page -- this methods cuts down requests
 3. Each desired domain in the config is checked to ensure that it is set to our address. In
    this way cloudflare is our cache (to guard against nefarious users updating out of band)
 
