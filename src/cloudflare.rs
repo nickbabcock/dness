@@ -269,7 +269,7 @@ impl<'a> CloudflareClient<'a> {
                         )
                     } else {
                         current += 1;
-                        info!(
+                        debug!(
                             "{} from zone {} is already current",
                             record.name, self.zone_name
                         )
