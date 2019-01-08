@@ -3,13 +3,18 @@
 set -ex
 
 main() {
-    cross build --all --target $TARGET
+    if [[ -n "$TARGET" ]]; then
+        cross build --all --target $TARGET
 
-    if [ ! -z $DISABLE_TESTS ]; then
-        return
+        if [ ! -z $DISABLE_TESTS ]; then
+            return
+        fi
+
+        cross test --all --target $TARGET
+    else
+        cargo build --all
+        cargo test --all
     fi
-
-    cross test --all --target $TARGET
 }
 
 # we don't run the "test phase" when doing deploys

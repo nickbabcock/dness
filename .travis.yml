@@ -29,10 +29,8 @@ matrix:
     - env: TARGET=x86_64-unknown-netbsd DISABLE_TESTS=1
 
     # Testing other channels
-    - env: TARGET=x86_64-unknown-linux-gnu
-      rust: nightly
-    - env: TARGET=x86_64-unknown-linux-gnu
-      rust: beta
+    - rust: nightly
+    - rust: beta
 
 before_install:
   - set -e
