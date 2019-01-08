@@ -5,6 +5,6 @@ After=network.target network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/dness -c /etc/dness/dness.conf
+ExecStart=/usr/bin/dness -c /etc/dness/dness.conf
 StandardOutput=journal+console
 
