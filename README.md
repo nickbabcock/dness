@@ -8,9 +8,9 @@
 
 ## Motivation
 
-When one has a server that is subjected to unpredictable IP address changes, such as at home or elsewhere, one experiences unexpected downtime. Instead of paying for a static IP address, one can employ a dynamic dns client on said server, which will update the [WAN](https://en.wikipedia.org/wiki/Wide_area_network) IP address on the dns server.
+When one has a server that is subjected to unpredictable IP address changes, such as at home or elsewhere, a change in IP address causes unexpected downtime. Instead of paying for a static IP address, one can employ a dynamic dns client on said server, which will update the [WAN](https://en.wikipedia.org/wiki/Wide_area_network) IP address on the dns server.
 
-There are plenty of dynamic dns clients, including the venerable [ddclient](https://github.com/ddclient/ddclient), but troublesome installation + dependency resolution, and cache format errors have left much to be desired. Other solutions fall short, so dness was created with the following goals:
+There are plenty of dynamic dns clients, including the venerable [ddclient](https://github.com/ddclient/ddclient), but troublesome installation + perl system dependency resolution, and cache format errors have left much to be desired. Other solutions fall short, so dness was created with the following goals:
 
 **Goals**:
 
