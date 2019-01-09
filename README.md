@@ -27,6 +27,8 @@ There are plenty of dynamic dns clients, including the venerable [ddclient](http
 
 To maximize initial flexibility, dness is not a daemon. Instead it relies on the host's scheduling (cron, systemd timers, windows scheduler). Future updates may add daemon functionality.
 
+- Go to the [latest release](https://github.com/nickbabcock/dness/releases/latest)
+
 ## Configuration
 
 No configuration file is necessary when only the WAN IP is desired.
