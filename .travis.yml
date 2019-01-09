@@ -28,6 +28,9 @@ matrix:
     - env: TARGET=x86_64-unknown-freebsd DISABLE_TESTS=1
     - env: TARGET=x86_64-unknown-netbsd DISABLE_TESTS=1
 
+    # build / test on rust stable deploy with debian packaging
+    - env: DEBIAN_PACKAGING=1
+
     # Testing other channels
     - rust: nightly
     - rust: beta
@@ -57,7 +60,9 @@ deploy:
     secure: "trYPEznGYPscNJlzrX8NflR/UKa6Hfkq/hQooH8jiWL9CIlw0ZrIGWphUx5O/nyvb+5mbO6XDMfOTsxLHWb8GXuAZreGsUWw5j3H6U88QvQN/JlZxUa/y95l3Nkd+EV2RYuou8uiw7aG7eTysk0OMyC55fcqjxbJCbe3vx3qFCLFDkUXHNuOERcoVfr6pnwz+YvevBO6HNjxn8fKil3mGF+aOt2L4ILJk+QFlpPJh1UKLYW/k9kKc01+0O7+zlWE2JlwiqM8G97NOHC+LKtapovdsxKPQ4eCijTf6OGmROEEf3mON9o0szExwiLHSoFw3HkRc6IzSyj2nOXdLn8GHUTYcFEVQxqrLvLLYRPkumybsgxQ6+iOQYAGIURKcGbU2Zpi/lOzE4tOifSqWOYBPYAEtw99AcpfM7CpW/s4qL56NoWk/Guuamq5jU50gMtwFbC3WF06FZia8uvguJvL7A4jjzRdPlJVrjo5F916u3CORkM4Z8OFZPSiYW8MsfWB2fUwspiiuNQnCuctLyiDXq8ngf+KKO6peE8MiX802+qAVLfveXp6J3v1Z/QzOH9P/PkjLW1+NEqL4vsTW/np173Fj6Ul2Ts1/I3PtZK8l2IvpfQynLxjcqV3VPvt5RaOon5ONwaXIr8HS45prSffdbEp6A0jhSnlZ1imef2rE/8="
 
   file_glob: true
-  file: $CRATE_NAME-$TRAVIS_TAG-$TARGET.*
+  file:
+    - $CRATE_NAME-$TRAVIS_TAG-$TARGET.*
+    - $CRATE_NAME*.deb
   on:
     # TODO Here you can pick which targets will generate binary releases
     # In this example, there are some targets that are tested using the stable
