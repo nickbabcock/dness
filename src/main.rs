@@ -17,11 +17,11 @@ mod config;
 mod dns;
 mod iplookup;
 
-use config::{parse_config, DnsConfig, DomainConfig};
-use iplookup::lookup_ip;
+use crate::config::{parse_config, DnsConfig, DomainConfig};
+use crate::iplookup::lookup_ip;
 
+use crate::dns::Updates;
 use chrono::Duration;
-use dns::Updates;
 use log::LevelFilter;
 use std::error;
 use std::fmt::Write;

@@ -8,6 +8,7 @@ repository = "https://github.com/nickbabcock/dness"
 publish = false
 readme = "README.md"
 license = "MIT"
+edition = "2018"
 
 [dependencies]
 trust-dns-resolver = "0.10"

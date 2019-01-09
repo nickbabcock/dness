@@ -1,5 +1,5 @@
-use config::CloudflareConfig;
-use dns::Updates;
+use crate::config::CloudflareConfig;
+use crate::dns::Updates;
 use std::collections::HashSet;
 use std::error;
 use std::fmt;
