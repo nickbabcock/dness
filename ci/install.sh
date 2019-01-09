@@ -2,6 +2,10 @@
 set -ex
 
 main() {
+    if [[ -z "$TARGET" ]]; then
+        return
+    fi
+
     local target=
     if [ $TRAVIS_OS_NAME = linux ]; then
         target=x86_64-unknown-linux-musl
