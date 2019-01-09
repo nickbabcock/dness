@@ -25,9 +25,45 @@ There are plenty of dynamic dns clients, including the venerable [ddclient](http
 
 ## Installation
 
-To maximize initial flexibility, dness is not a daemon. Instead it relies on the host's scheduling (cron, systemd timers, windows scheduler). Future updates may add daemon functionality.
+To maximize initial flexibility, dness is not a daemon. Instead it relies on the host's scheduling (cron, systemd timers, windows scheduler).
 
-- Go to the [latest release](https://github.com/nickbabcock/dness/releases/latest)
+### Ubuntu / Debian (systemd + deb)
+
+- Download the [latest deb](https://github.com/nickbabcock/dness/releases/latest)
+
+```
+dpkg -i dness_<version>_amd64.deb
+
+# ensure it is working
+/usr/bin/dness
+
+# enable systemd timer
+systemctl daemon-reload
+systemctl start dness.timer
+systemctl enable dness.timer
+
+# update configuration
+${EDITOR:-vi} /etc/dness/dness.conf
+```
+
+### Linux Musl
+
+The linux musl build is a static build of dness. It has zero dependencies. Nothing is quite like scp'ing or curl'ing a musl binary to a random / unknown linux server and having it just work.
+
+- Download the [latest "-x86_64-unknown-linux-musl.tar.gz" ](https://github.com/nickbabcock/dness/releases/latest)
+- untar (`tar -xzf *-x86_64-unknown-linux-musl.tar.gz`)
+- enjoy
+
+### Windows
+
+- Download the [latest ".exe"](https://github.com/nickbabcock/dness/releases/latest)
+- Create configuration file (`dness.conf`)
+- Execute `dness.exe -c dness.conf` to verify behavior
+- If desired, use windows task scheduler to execute command at specific times
+
+### Other
+
+Download the [latest appropriate target](https://github.com/nickbabcock/dness/releases/latest)
 
 ## Configuration
 
