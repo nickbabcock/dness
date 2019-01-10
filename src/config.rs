@@ -40,6 +40,7 @@ impl fmt::Display for ConfigError {
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug, Default)]
+#[serde(deny_unknown_fields)]
 pub struct DnsConfig {
     #[serde(default)]
     pub log: LogConfig,
@@ -49,6 +50,7 @@ pub struct DnsConfig {
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct LogConfig {
     #[serde(default = "default_log_level")]
     pub level: LevelFilter,
@@ -74,6 +76,7 @@ pub enum DomainConfig {
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct CloudflareConfig {
     pub email: String,
     pub key: String,
@@ -112,6 +115,13 @@ mod tests {
                 domains: vec![]
             }
         )
+    }
+
+    #[test]
+    fn deserialize_config_deny_unknown() {
+        let err = toml::from_str::<DnsConfig>(r#"log_info = "DEBUG""#).unwrap_err();
+        let msg = format!("{}", err);
+        assert!(msg.contains("unknown field `log_info`"));
     }
 
     #[test]
