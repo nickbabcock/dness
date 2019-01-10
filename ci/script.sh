@@ -3,7 +3,7 @@
 set -ex
 
 main() {
-    if [[ -n "$TARGET" ]]; then
+    if [ -n "$TARGET" ]; then
         cross build --all --target $TARGET
 
         if [ ! -z $DISABLE_TESTS ]; then

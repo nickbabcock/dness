@@ -2,7 +2,7 @@
 set -ex
 
 main() {
-    if [[ -z "$TARGET" ]]; then
+    if [ -z "$TARGET" ]; then
         return
     fi
 

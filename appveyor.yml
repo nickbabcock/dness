@@ -36,7 +36,7 @@ before_deploy:
   - ps: ci\before_deploy.ps1
 
 deploy:
-  artifact: /.*\.zip/
+  artifact: /.*\.exe/
   auth_token:
     secure: NAE2+/lVnBW2WgC6rjdPXGcgZHzoTBTamT/HcWTzLbwxHo21FXTxmWHUESmmHQBN
   description: ''

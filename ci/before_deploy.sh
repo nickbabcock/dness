@@ -18,7 +18,7 @@ main() {
 
     test -f Cargo.lock || cargo generate-lockfile
 
-    if [[ -n "$TARGET"  ]]; then
+    if [ -n "$TARGET"  ]; then
         cross rustc --bin dness --target $TARGET --release -- -C lto
         cp target/$TARGET/release/dness $stage/
         cd $stage
