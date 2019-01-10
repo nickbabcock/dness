@@ -16,7 +16,7 @@ There are plenty of dynamic dns clients, including the venerable [ddclient](http
 
 - Cross platform (Windows, Mac, Linux, ARM, BSD)
 - "zero" dependencies
-  - Depend on only already installed system wide dependencies (libc, libcrypto, libssl)
+  - Depend on only already installed system wide dependencies (libssl (eg: openssl))
   - And offer statically linked builds for truly zero dependencies
 - A standard configuration ([TOML](https://github.com/toml-lang/toml)) that is similar to ddclient's.
 - Extendable to allow for more dynamic dns services
@@ -29,9 +29,10 @@ To maximize initial flexibility, dness is not a daemon. Instead it relies on the
 
 ### Ubuntu / Debian (systemd + deb)
 
-- Download the [latest deb](https://github.com/nickbabcock/dness/releases/latest)
+- Decide if you want a static musl package or one that depends on the system's openssl.
+- Download the [latest chosen deb](https://github.com/nickbabcock/dness/releases/latest)
 
-```
+```bash
 dpkg -i dness_<version>_amd64.deb
 
 # ensure it is working

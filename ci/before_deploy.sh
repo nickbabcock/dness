@@ -18,8 +18,13 @@ main() {
 
     test -f Cargo.lock || cargo generate-lockfile
 
-    if [ -n "$TARGET"  ]; then
+    if [ -n "$TARGET" ]; then
         cross rustc --bin dness --target $TARGET --release -- -C lto
+        if [ "$TARGET" == "x86_64-unknown-linux-musl" ]; then
+            cross deb --target "$TARGET" --variant musl --no-build
+            cp target/debian/dness*.deb $src/.
+        fi
+
         cp target/$TARGET/release/dness $stage/
         cd $stage
         tar czf $src/$CRATE_NAME-$TRAVIS_TAG-$TARGET.tar.gz *
