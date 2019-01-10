@@ -35,9 +35,11 @@ features = ["termcolor", "atty", "regex"]
 
 [package.metadata.deb]
 extended-description = """dness is a command line dynamic dns client"""
-depends = "$auto, openssl"
+depends = "libssl1.1"
 section = "utility"
 priority = "optional"
+provides = "dness"
+conflicts = "dness-musl"
 assets = [
     ["target/release/dness", "usr/bin/dness", "755"],
     ["assets/bare-config.toml", "etc/dness/dness.conf", "600"],
@@ -45,3 +47,7 @@ assets = [
     ["assets/dness.timer", "etc/systemd/system/dness.timer", "644"]
 ]
 conf-files = ["etc/dness/dness.conf"]
+
+[package.metadata.deb.variants.musl]
+depends = ""
+conflicts = "dness"
