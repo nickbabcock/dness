@@ -33,7 +33,7 @@ To maximize initial flexibility, dness is not a daemon. Instead it relies on the
 - Download the [latest chosen deb](https://github.com/nickbabcock/dness/releases/latest)
 
 ```bash
-dpkg -i dness_<version>_amd64.deb
+dpkg -i dness<version>_amd64.deb
 
 # ensure it is working
 /usr/bin/dness
