@@ -23,7 +23,7 @@ main() {
         if [ "$TARGET" = "x86_64-unknown-linux-musl" ]; then
             cargo install cargo-deb
             cross deb --target "$TARGET" --variant musl --no-build
-            cp target/debian/dness*.deb $src/.
+            cp target/"$TARGET"/debian/dness*.deb $src/.
         fi
 
         cp target/$TARGET/release/dness $stage/
