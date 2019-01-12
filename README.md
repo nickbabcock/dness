@@ -88,7 +88,7 @@ But dness can do more than resolve one's WAN IP. Below is a sample configuration
 
 ```toml
 [log]
-# How verbose the log is. Commons values are Error, Warn, Info, Debug, Trace
+# How verbose the log is. Common values: Error, Warn, Info, Debug, Trace
 level = "Debug"
 
 [[domains]]
