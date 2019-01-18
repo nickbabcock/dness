@@ -219,6 +219,12 @@ impl<'a> GoClient<'a> {
     }
 }
 
+/// GoDaddy dynamic dns service works as the following:
+///
+/// 1. Send a GET request to find all records in the domain
+/// 2. Find all the expected records (and log those that are missing) and check their current IP
+/// 3. Update the remote IP as needed, ensuring that original properties are preserved in the
+///    upload, so that we don't overwrite a property like TTL.
 pub fn update_domains(
     client: &reqwest::Client,
     config: &GoDaddyConfig,

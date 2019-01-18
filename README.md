@@ -165,6 +165,33 @@ Cloudflare dynamic dns service works in three steps:
 3. Each desired domain in the config is checked to ensure that it is set to our address. In
    this way cloudflare is our cache (to guard against nefarious users updating out of band)
 
+#### GoDaddy
+
+```toml
+[[domains]]
+# denote that the domain is managed by godaddy
+type = "godaddy"
+
+# The GoDaddy domain: https://dcc.godaddy.com/domains/
+domain = "example.com"
+
+# This is the api key, you can create one here:
+# https://developer.godaddy.com/keys
+key = "abc123"
+
+# The password for the key, top secret!
+secret = "ef"
+
+# The records to update. "@" = "example.com", "a" = "a.example.com"
+records = [ "@", "a" ]
+```
+
+GoDaddy dynamic dns service works as the following:
+
+1. Send a GET request to find all records in the domain
+2. Find all the expected records (and log those that are missing) and check their current IP
+3. Update the remote IP as needed, ensuring that original properties are preserved in the upload, so that we don't overwrite a property like TTL.
+
 ### Supported WAN IP Resolvers
 
 No other WAN IP resolvers are available, but it certainly possible to add other DNS or HTTP resolvers in the future.
