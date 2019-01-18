@@ -301,7 +301,7 @@ mod tests {
         assert_eq!(actual, expected);
     }
 
-    fn index(_req: &HttpRequest) -> HttpResponse {
+    fn unparseable_ipv4(_req: &HttpRequest) -> HttpResponse {
         HttpResponse::Ok()
             .content_type("application/json")
             .body(include_str!("../assets/godaddy-get-records.json"))
@@ -313,8 +313,8 @@ mod tests {
 
     fn create_app() -> App {
         App::new()
-            .resource("/v1/domains/domain-1.com/records/A", |r| r.f(index))
-            .resource("v1/domains/domain-1.com/records/A/@", |r| r.f(update))
+            .resource("/v1/domains/domain-1.com/records/A", |r| r.f(unparseable_ipv4))
+            .resource("/v1/domains/domain-1.com/records/A/@", |r| r.f(update))
     }
 
     fn create_test_server() -> TestServer {
@@ -322,7 +322,7 @@ mod tests {
     }
 
     #[test]
-    fn test_index() {
+    fn test_godaddy_unparseable_ipv4() {
         let server = create_test_server();
         let http_client = reqwest::Client::new();
         let new_ip = Ipv4Addr::new(2, 2, 2, 2);
