@@ -73,6 +73,7 @@ impl Default for LogConfig {
 #[serde(rename_all = "lowercase")]
 pub enum DomainConfig {
     Cloudflare(CloudflareConfig),
+    GoDaddy(GoDaddyConfig),
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -82,6 +83,21 @@ pub struct CloudflareConfig {
     pub key: String,
     pub zone: String,
     pub records: Vec<String>,
+}
+
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct GoDaddyConfig {
+    #[serde(default = "godaddy_base_url")]
+    pub base_url: String,
+    pub key: String,
+    pub secret: String,
+    pub domain: String,
+    pub records: Vec<String>,
+}
+
+fn godaddy_base_url() -> String {
+    String::from("https://api.godaddy.com")
 }
 
 pub fn parse_config<P: AsRef<Path>>(path: P) -> Result<DnsConfig, ConfigError> {
@@ -141,6 +157,22 @@ mod tests {
                     records: vec![String::from("n.example.com")]
                 })]
             }
+        );
+    }
+
+    #[test]
+    fn deserialize_config_godaddy() {
+        let toml_str = &include_str!("../assets/godaddy-config.toml");
+        let config: DomainConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(
+            config,
+            DomainConfig::GoDaddy(GoDaddyConfig {
+                base_url: String::from("https://api.godaddy.com"),
+                domain: String::from("example.com"),
+                key: String::from("abc123"),
+                secret: String::from("ef"),
+                records: vec![String::from("@")]
+            })
         );
     }
 

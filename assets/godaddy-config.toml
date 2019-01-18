@@ -1,0 +1,5 @@
+type = "godaddy"
+domain = "example.com"
+key = "abc123"
+secret = "ef"
+records = [ "@" ]

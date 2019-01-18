@@ -1,7 +1,7 @@
 use std::fmt;
 use std::ops::{Add, AddAssign};
 
-#[derive(Clone, Debug, Copy, Default)]
+#[derive(Clone, Debug, Copy, Default, PartialEq, Eq)]
 pub struct Updates {
     pub updated: i32,
     pub current: i32,

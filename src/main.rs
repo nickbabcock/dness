@@ -15,6 +15,7 @@ extern crate failure;
 mod cloudflare;
 mod config;
 mod dns;
+mod godaddy;
 mod iplookup;
 
 use crate::config::{parse_config, DnsConfig, DomainConfig};
@@ -39,11 +40,11 @@ struct Opt {
 fn log_err<E: error::Error>(context: &str, err: &E) {
     let mut msg = String::new();
     let _ = writeln!(msg, "{} ", context);
-    let _ = writeln!(msg, "\tcaused by: {}", err);
+    let _ = write!(msg, "\tcaused by: {}", err);
 
     let mut ie = err.cause();
     while let Some(cause) = ie {
-        let _ = writeln!(msg, "\tcaused by: {}", cause);
+        let _ = write!(msg, "\n\tcaused by: {}", cause);
         ie = cause.cause();
     }
 
@@ -128,6 +129,28 @@ fn main() {
                         let msg = format!(
                             "could not update cloudflare domains in: {}",
                             domain_config.zone
+                        );
+                        log_err(&msg, e);
+                    }
+                }
+            }
+            DomainConfig::GoDaddy(domain_config) => {
+                let start_godaddy = Instant::now();
+                match godaddy::update_domains(&http_client, &domain_config, addr) {
+                    Ok(updates) => {
+                        info!(
+                            "processed godaddy: {} ({}) in {}",
+                            domain_config.domain,
+                            updates,
+                            elapsed(start_godaddy)
+                        );
+                        total_updates += updates;
+                    }
+                    Err(ref e) => {
+                        failure = true;
+                        let msg = format!(
+                            "could not update godaddy domains in: {}",
+                            domain_config.domain
                         );
                         log_err(&msg, e);
                     }
