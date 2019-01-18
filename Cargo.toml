@@ -33,6 +33,10 @@ version = "0.6"
 default-features = false
 features = ["termcolor", "atty", "regex"]
 
+[dev-dependencies]
+actix-web = "0.7"
+
+
 [package.metadata.deb]
 extended-description = """dness is a command line dynamic dns client"""
 depends = "libssl1.1"
