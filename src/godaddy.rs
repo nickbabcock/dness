@@ -307,18 +307,39 @@ mod tests {
             .body(include_str!("../assets/godaddy-get-records.json"))
     }
 
+    fn grabbag_site(_req: &HttpRequest) -> HttpResponse {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(r#"[{"name": "@", "data": "2.2.2.2"}, {"name": "a", "data": "2.1.2.2"}]"#)
+    }
+
     fn update(_req: &HttpRequest) -> HttpResponse {
         HttpResponse::new(StatusCode::OK)
     }
 
     fn create_app() -> App {
         App::new()
-            .resource("/v1/domains/domain-1.com/records/A", |r| r.f(unparseable_ipv4))
+            .resource("/v1/domains/domain-1.com/records/A", |r| {
+                r.f(unparseable_ipv4)
+            })
             .resource("/v1/domains/domain-1.com/records/A/@", |r| r.f(update))
+            .resource("/v1/domains/domain-2.com/records/A", |r| r.f(grabbag_site))
+            .resource("/v1/domains/domain-2.com/records/A/@", |r| r.f(update))
+            .resource("/v1/domains/domain-2.com/records/A/a", |r| r.f(update))
     }
 
     fn create_test_server() -> TestServer {
         TestServer::with_factory(create_app)
+    }
+
+    fn test_config(server: &TestServer) -> GoDaddyConfig {
+        GoDaddyConfig {
+            base_url: String::from(server.url("")),
+            domain: String::from("domain-1.com"),
+            key: String::from("key-1"),
+            secret: String::from("secret-1"),
+            records: vec![String::from("@")],
+        }
     }
 
     #[test]
@@ -326,13 +347,7 @@ mod tests {
         let server = create_test_server();
         let http_client = reqwest::Client::new();
         let new_ip = Ipv4Addr::new(2, 2, 2, 2);
-        let config = GoDaddyConfig {
-            base_url: String::from(server.url("")),
-            domain: String::from("domain-1.com"),
-            key: String::from("key-1"),
-            secret: String::from("secret-1"),
-            records: vec![String::from("@")],
-        };
+        let config = test_config(&server);
         let summary = update_domains(&http_client, &config, new_ip).unwrap();
         assert_eq!(
             summary,
@@ -340,6 +355,27 @@ mod tests {
                 current: 0,
                 updated: 1,
                 missing: 0,
+            }
+        );
+    }
+
+    #[test]
+    fn test_godaddy_grabbag() {
+        let server = create_test_server();
+        let http_client = reqwest::Client::new();
+        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let config = GoDaddyConfig {
+            domain: String::from("domain-2.com"),
+            records: vec![String::from("@"), String::from("a"), String::from("b")],
+            ..test_config(&server).clone()
+        };
+        let summary = update_domains(&http_client, &config, new_ip).unwrap();
+        assert_eq!(
+            summary,
+            Updates {
+                current: 1,
+                updated: 1,
+                missing: 1,
             }
         );
     }
