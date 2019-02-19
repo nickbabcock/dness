@@ -12,6 +12,7 @@ extern crate failure;
 
 mod cloudflare;
 mod config;
+mod core;
 mod dns;
 mod godaddy;
 mod iplookup;

@@ -224,27 +224,12 @@ impl<'a> CloudflareClient<'a> {
 
     // Logs the domains found in the config but not in cloudflare
     fn log_missing_domains(&self, remote_domains: &[CloudflareDnsRecord]) -> usize {
-        let found_domains = remote_domains
+        let actual = remote_domains
             .iter()
             .map(|x| &x.name)
             .cloned()
             .collect::<HashSet<String>>();
-
-        let missing_domains = self
-            .records
-            .difference(&found_domains)
-            .cloned()
-            .collect::<Vec<String>>();
-
-        if !missing_domains.is_empty() {
-            warn!(
-                "domains not found in cloudflare in zone {}: {}",
-                self.zone_name,
-                missing_domains.join(", ")
-            );
-        }
-
-        missing_domains.len()
+        crate::core::log_missing_domains(&self.records, &actual, "cloudflare", &self.zone_name)
     }
 
     fn update(&self, addr: Ipv4Addr) -> Result<Updates, ClError> {

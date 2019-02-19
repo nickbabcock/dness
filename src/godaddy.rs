@@ -117,27 +117,12 @@ struct GoClient<'a> {
 
 impl<'a> GoClient<'a> {
     fn log_missing_domains(&self, remote_domains: &[GoRecord]) -> usize {
-        let found_domains = remote_domains
+        let actual = remote_domains
             .iter()
             .map(|x| &x.name)
             .cloned()
             .collect::<HashSet<String>>();
-
-        let missing_domains = self
-            .records
-            .difference(&found_domains)
-            .cloned()
-            .collect::<Vec<String>>();
-
-        if !missing_domains.is_empty() {
-            warn!(
-                "records not found in GoDaddy domain {}: {}",
-                self.domain,
-                missing_domains.join(", ")
-            );
-        }
-
-        missing_domains.len()
+        crate::core::log_missing_domains(&self.records, &actual, "GoDaddy", &self.domain)
     }
 
     fn auth_header(&self) -> String {
