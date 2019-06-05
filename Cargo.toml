@@ -34,7 +34,7 @@ default-features = false
 features = ["termcolor", "atty", "regex"]
 
 [dev-dependencies.actix-web]
-version = "0.7"
+version = "1.0"
 default-features = false
 
 [package.metadata.deb]
