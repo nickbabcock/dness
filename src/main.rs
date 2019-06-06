@@ -31,7 +31,7 @@ use std::time::Instant;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "dnsess")]
+#[structopt(name = "dness")]
 struct Opt {
     #[structopt(short = "c", long = "config")]
     config_file: Option<String>,
