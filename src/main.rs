@@ -42,10 +42,10 @@ fn log_err<E: error::Error>(context: &str, err: &E) {
     let _ = writeln!(msg, "{} ", context);
     let _ = write!(msg, "\tcaused by: {}", err);
 
-    let mut ie = err.cause();
+    let mut ie = err.source();
     while let Some(cause) = ie {
         let _ = write!(msg, "\n\tcaused by: {}", cause);
-        ie = cause.cause();
+        ie = cause.source();
     }
 
     error!("{}", msg);
