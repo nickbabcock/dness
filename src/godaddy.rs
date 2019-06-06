@@ -260,9 +260,12 @@ mod tests {
     use super::*;
     use serde_json::json;
 
+    extern crate actix_http;
+    extern crate actix_http_test;
     extern crate actix_web;
-    use actix_web::test::TestServer;
-    use actix_web::{http::StatusCode, App, HttpRequest, HttpResponse};
+    use actix_http::HttpService;
+    use actix_http_test::{TestServer, TestServerRuntime};
+    use actix_web::{http::StatusCode, web, App, HttpResponse};
 
     #[test]
     fn deserialize_go_records() {
@@ -301,38 +304,39 @@ mod tests {
         assert_eq!(actual, expected);
     }
 
-    fn unparseable_ipv4(_req: &HttpRequest) -> HttpResponse {
+    fn unparseable_ipv4() -> HttpResponse {
         HttpResponse::Ok()
             .content_type("application/json")
             .body(include_str!("../assets/godaddy-get-records.json"))
     }
 
-    fn grabbag_site(_req: &HttpRequest) -> HttpResponse {
+    fn grabbag_site() -> HttpResponse {
         HttpResponse::Ok()
             .content_type("application/json")
             .body(r#"[{"name": "@", "data": "2.2.2.2"}, {"name": "a", "data": "2.1.2.2"}]"#)
     }
 
-    fn update(_req: &HttpRequest) -> HttpResponse {
+    fn update() -> HttpResponse {
         HttpResponse::new(StatusCode::OK)
     }
 
-    fn create_app() -> App {
-        App::new()
-            .resource("/v1/domains/domain-1.com/records/A", |r| {
-                r.f(unparseable_ipv4)
-            })
-            .resource("/v1/domains/domain-1.com/records/A/@", |r| r.f(update))
-            .resource("/v1/domains/domain-2.com/records/A", |r| r.f(grabbag_site))
-            .resource("/v1/domains/domain-2.com/records/A/@", |r| r.f(update))
-            .resource("/v1/domains/domain-2.com/records/A/a", |r| r.f(update))
+    fn create_test_server() -> TestServerRuntime {
+        TestServer::new(|| {
+            HttpService::new(
+                App::new()
+                    .route(
+                        "/v1/domains/domain-1.com/records/A",
+                        web::to(unparseable_ipv4),
+                    )
+                    .route("/v1/domains/domain-1.com/records/A/@", web::to(update))
+                    .route("/v1/domains/domain-2.com/records/A", web::to(grabbag_site))
+                    .route("/v1/domains/domain-2.com/records/A/@", web::to(update))
+                    .route("/v1/domains/domain-2.com/records/A/a", web::to(update)),
+            )
+        })
     }
 
-    fn create_test_server() -> TestServer {
-        TestServer::with_factory(create_app)
-    }
-
-    fn test_config(server: &TestServer) -> GoDaddyConfig {
+    fn test_config(server: &TestServerRuntime) -> GoDaddyConfig {
         GoDaddyConfig {
             base_url: String::from(server.url("")),
             domain: String::from("domain-1.com"),
