@@ -1,5 +1,6 @@
 use crate::config::CloudflareConfig;
 use crate::dns::Updates;
+use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::error;
 use std::fmt;

@@ -1,4 +1,5 @@
 use log::LevelFilter;
+use serde::Deserialize;
 use std::error;
 use std::fmt;
 use std::fs::File;

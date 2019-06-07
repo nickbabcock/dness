@@ -1,5 +1,6 @@
 use crate::config::GoDaddyConfig;
 use crate::dns::Updates;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap as Map;
 use std::collections::HashSet;

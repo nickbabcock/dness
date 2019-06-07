@@ -1,11 +1,9 @@
 extern crate reqwest;
 extern crate serde;
-extern crate trust_dns_resolver;
-#[macro_use]
-extern crate serde_derive;
 extern crate serde_json;
 extern crate structopt;
 extern crate toml;
+extern crate trust_dns_resolver;
 #[macro_use]
 extern crate log;
 extern crate chrono;
