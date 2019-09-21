@@ -140,12 +140,12 @@ impl<'a> CloudflareClient<'a> {
         if !response.success {
             Err(ClError {
                 kind: ClErrorKind::ErrorResponse("zones", response.errors.clone()),
-            })?
+            })
         } else if let Some(zone) = response.result {
             if zone.len() != 1 {
                 return Err(ClError {
                     kind: ClErrorKind::UnexpectedNumberOfZones(zone.len()),
-                })?;
+                });
             }
 
             let zone_id = zone[0].id.clone();
@@ -161,7 +161,7 @@ impl<'a> CloudflareClient<'a> {
         } else {
             Err(ClError {
                 kind: ClErrorKind::MissingResult("zones"),
-            })?
+            })
         }
     }
 
@@ -312,10 +312,10 @@ impl<'a> CloudflareClient<'a> {
         if !response.success {
             Err(ClError {
                 kind: ClErrorKind::ErrorResponse("update dns", response.errors.clone()),
-            })?
+            })
+        } else {
+            Ok(())
         }
-
-        Ok(())
     }
 }
 
