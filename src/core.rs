@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use log::warn;
 
 pub fn log_missing_domains(
     expected: &HashSet<String>,

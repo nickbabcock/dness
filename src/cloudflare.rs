@@ -1,5 +1,6 @@
 use crate::config::CloudflareConfig;
 use crate::dns::Updates;
+use log::{info, warn, debug};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::error;
@@ -82,7 +83,7 @@ pub enum ClErrorKind {
 }
 
 impl error::Error for ClError {
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match self.kind {
             ClErrorKind::SendHttp(_, ref e) => Some(e),
             ClErrorKind::DecodeHttp(_, ref e) => Some(e),
@@ -92,7 +93,7 @@ impl error::Error for ClError {
 }
 
 impl fmt::Display for ClError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "communicating with cloudflare: ")?;
         match self.kind {
             ClErrorKind::SendHttp(action, ref _e) => write!(f, "http send error for {}", action),
