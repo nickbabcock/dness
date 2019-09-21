@@ -1,8 +1,8 @@
 use crate::config::GoDaddyConfig;
 use crate::dns::Updates;
+use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use log::{info, warn, debug};
 use std::collections::BTreeMap as Map;
 use std::collections::HashSet;
 use std::error;
@@ -245,14 +245,10 @@ pub fn update_domains(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
-
-    use actix_http;
-    use actix_http_test;
-    use actix_web;
     use actix_http::HttpService;
     use actix_http_test::{TestServer, TestServerRuntime};
     use actix_web::{http::StatusCode, web, App, HttpResponse};
+    use serde_json::json;
 
     #[test]
     fn deserialize_go_records() {

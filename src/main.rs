@@ -6,8 +6,8 @@ mod godaddy;
 mod iplookup;
 
 use crate::config::{parse_config, DnsConfig, DomainConfig};
-use crate::iplookup::lookup_ip;
 use crate::dns::Updates;
+use crate::iplookup::lookup_ip;
 use chrono::Duration;
 use log::{error, info, LevelFilter};
 use std::error;
