@@ -27,7 +27,7 @@ impl Add for Updates {
 }
 
 impl fmt::Display for Updates {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "updated: {}, already current: {}, missing: {}",

@@ -20,7 +20,7 @@ pub enum LookupErrorKind {
 }
 
 impl error::Error for LookupError {
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match self.kind {
             LookupErrorKind::DnsCreation(ref e) => Some(e),
             LookupErrorKind::DnsResolve(ref e) => Some(e),
@@ -30,7 +30,7 @@ impl error::Error for LookupError {
 }
 
 impl fmt::Display for LookupError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "resolving WAN IP issue: ")?;
         match self.kind {
             LookupErrorKind::DnsCreation(ref _e) => write!(f, "could not create dns resolver"),

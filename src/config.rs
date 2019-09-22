@@ -20,7 +20,7 @@ pub enum ConfigErrorKind {
 }
 
 impl error::Error for ConfigError {
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match self.kind {
             ConfigErrorKind::FileNotFound(ref e) => Some(e),
             ConfigErrorKind::Misread(ref e) => Some(e),
@@ -30,7 +30,7 @@ impl error::Error for ConfigError {
 }
 
 impl fmt::Display for ConfigError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "config issue: ")?;
         match self.kind {
             ConfigErrorKind::FileNotFound(ref _e) => write!(f, "file not found"),

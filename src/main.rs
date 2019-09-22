@@ -1,15 +1,3 @@
-extern crate reqwest;
-extern crate serde;
-extern crate serde_json;
-extern crate structopt;
-extern crate toml;
-extern crate trust_dns_resolver;
-#[macro_use]
-extern crate log;
-extern crate chrono;
-extern crate env_logger;
-extern crate failure;
-
 mod cloudflare;
 mod config;
 mod core;
@@ -18,11 +6,10 @@ mod godaddy;
 mod iplookup;
 
 use crate::config::{parse_config, DnsConfig, DomainConfig};
-use crate::iplookup::lookup_ip;
-
 use crate::dns::Updates;
+use crate::iplookup::lookup_ip;
 use chrono::Duration;
-use log::LevelFilter;
+use log::{error, info, LevelFilter};
 use std::error;
 use std::fmt::Write;
 use std::net::Ipv4Addr;

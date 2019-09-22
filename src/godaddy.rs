@@ -1,5 +1,6 @@
 use crate::config::GoDaddyConfig;
 use crate::dns::Updates;
+use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap as Map;
@@ -46,7 +47,7 @@ impl DnessError {
 }
 
 impl error::Error for DnessError {
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match self.kind {
             DnessErrorKind::SendHttp { ref source, .. } => Some(source),
             DnessErrorKind::BadResponse { ref source, .. } => Some(source),
@@ -56,7 +57,7 @@ impl error::Error for DnessError {
 }
 
 impl fmt::Display for DnessError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.kind {
             DnessErrorKind::SendHttp { url, context, .. } => write!(
                 f,
@@ -244,14 +245,10 @@ pub fn update_domains(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
-
-    extern crate actix_http;
-    extern crate actix_http_test;
-    extern crate actix_web;
     use actix_http::HttpService;
     use actix_http_test::{TestServer, TestServerRuntime};
     use actix_web::{http::StatusCode, web, App, HttpResponse};
+    use serde_json::json;
 
     #[test]
     fn deserialize_go_records() {

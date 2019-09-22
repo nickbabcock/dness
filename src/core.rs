@@ -1,3 +1,4 @@
+use log::warn;
 use std::collections::HashSet;
 
 pub fn log_missing_domains(
