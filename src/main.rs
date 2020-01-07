@@ -76,7 +76,14 @@ fn resolve_ip() -> Ipv4Addr {
     }
 }
 
-fn main() {
+fn elapsed(start: Instant) -> String {
+    Duration::from_std(Instant::now().duration_since(start))
+        .map(|x| format!("{}ms", x.num_milliseconds()))
+        .unwrap_or_else(|_| String::from("<error>"))
+}
+
+#[tokio::main]
+async fn main() {
     let start = Instant::now();
     let opt = Opt::from_args();
     let config = init_configuration(&opt.config_file);
@@ -100,7 +107,7 @@ fn main() {
         match d {
             DomainConfig::Cloudflare(domain_config) => {
                 let start_cloudflare = Instant::now();
-                match cloudflare::update_domains(&http_client, &domain_config, addr) {
+                match cloudflare::update_domains(&http_client, &domain_config, addr).await {
                     Ok(updates) => {
                         info!(
                             "processed cloudflare: {} ({}) in {}",
@@ -122,7 +129,7 @@ fn main() {
             }
             DomainConfig::GoDaddy(domain_config) => {
                 let start_godaddy = Instant::now();
-                match godaddy::update_domains(&http_client, &domain_config, addr) {
+                match godaddy::update_domains(&http_client, &domain_config, addr).await {
                     Ok(updates) => {
                         info!(
                             "processed godaddy: {} ({}) in {}",
@@ -150,10 +157,4 @@ fn main() {
         error!("at least one update failed, so exiting with non-zero status code");
         std::process::exit(1)
     }
-}
-
-fn elapsed(start: Instant) -> String {
-    Duration::from_std(Instant::now().duration_since(start))
-        .map(|x| format!("{}ms", x.num_milliseconds()))
-        .unwrap_or_else(|_| String::from("<error>"))
 }

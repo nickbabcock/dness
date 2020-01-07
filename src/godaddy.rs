@@ -130,21 +130,23 @@ impl<'a> GoClient<'a> {
         format!("sso-key {}:{}", self.key, self.secret)
     }
 
-    fn fetch_records(&self) -> Result<Vec<GoRecord>, DnessError> {
+    async fn fetch_records(&self) -> Result<Vec<GoRecord>, DnessError> {
         let get_url = format!("{}/v1/domains/{}/records/A", self.base_url, self.domain);
-        Ok(self
-            .client
+        let response = self.client
             .get(&get_url)
             .header("Authorization", self.auth_header())
             .send()
+            .await
             .map_err(|e| DnessError::send_http(&get_url, "godaddy fetch records", e))?
             .error_for_status()
             .map_err(|e| DnessError::bad_response(&get_url, "godaddy fetch records", e))?
             .json()
-            .map_err(|e| DnessError::deserialize(&get_url, "godaddy fetch records", e))?)
+            .await
+            .map_err(|e| DnessError::deserialize(&get_url, "godaddy fetch records", e))?;
+        Ok(response)
     }
 
-    fn update_record(&self, record: &GoRecord, addr: Ipv4Addr) -> Result<(), DnessError> {
+    async fn update_record(&self, record: &GoRecord, addr: Ipv4Addr) -> Result<(), DnessError> {
         let put_url = format!(
             "{}/v1/domains/{}/records/A/{}",
             self.base_url, self.domain, record.name
@@ -158,6 +160,7 @@ impl<'a> GoClient<'a> {
                 ..record.clone()
             }])
             .send()
+            .await
             .map_err(|e| DnessError::send_http(&put_url, "godaddy update records", e))?
             .error_for_status()
             .map_err(|e| DnessError::bad_response(&put_url, "godaddy update records", e))?;
@@ -165,14 +168,14 @@ impl<'a> GoClient<'a> {
         Ok(())
     }
 
-    fn ensure_current_ip(&self, record: &GoRecord, addr: Ipv4Addr) -> Result<Updates, DnessError> {
+    async fn ensure_current_ip(&self, record: &GoRecord, addr: Ipv4Addr) -> Result<Updates, DnessError> {
         let mut current = 0;
         let mut updated = 0;
         match record.data.parse::<Ipv4Addr>() {
             Ok(ip) => {
                 if ip != addr {
                     updated += 1;
-                    self.update_record(&record, addr)?;
+                    self.update_record(&record, addr).await?;
 
                     info!(
                         "{} from domain {} updated from {} to {}",
@@ -189,7 +192,7 @@ impl<'a> GoClient<'a> {
             Err(ref e) => {
                 updated += 1;
                 warn!("could not parse domain {} address {} as ipv4 -- will replace it. Original error: {}", record.name, record.data, e);
-                self.update_record(&record, addr)?;
+                self.update_record(&record, addr).await?;
 
                 info!(
                     "{} from domain {} updated from {} to {}",
@@ -212,7 +215,7 @@ impl<'a> GoClient<'a> {
 /// 2. Find all the expected records (and log those that are missing) and check their current IP
 /// 3. Update the remote IP as needed, ensuring that original properties are preserved in the
 ///    upload, so that we don't overwrite a property like TTL.
-pub fn update_domains(
+pub async fn update_domains(
     client: &reqwest::Client,
     config: &GoDaddyConfig,
     addr: Ipv4Addr,
@@ -226,7 +229,7 @@ pub fn update_domains(
         client,
     };
 
-    let records = go_client.fetch_records()?;
+    let records = go_client.fetch_records().await?;
     let missing = go_client.log_missing_domains(&records) as i32;
     let mut summary = Updates {
         missing,
@@ -235,7 +238,7 @@ pub fn update_domains(
 
     for record in records {
         if go_client.records.contains(&record.name) {
-            summary += go_client.ensure_current_ip(&record, addr)?;
+            summary += go_client.ensure_current_ip(&record, addr).await?;
         }
     }
 
@@ -329,13 +332,13 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_godaddy_unparseable_ipv4() {
+    #[tokio::test]
+    async fn test_godaddy_unparseable_ipv4() {
         let server = create_test_server();
         let http_client = reqwest::Client::new();
         let new_ip = Ipv4Addr::new(2, 2, 2, 2);
         let config = test_config(&server);
-        let summary = update_domains(&http_client, &config, new_ip).unwrap();
+        let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
         assert_eq!(
             summary,
             Updates {
@@ -346,8 +349,8 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_godaddy_grabbag() {
+    #[tokio::test]
+    async fn test_godaddy_grabbag() {
         let server = create_test_server();
         let http_client = reqwest::Client::new();
         let new_ip = Ipv4Addr::new(2, 2, 2, 2);
@@ -356,7 +359,7 @@ mod tests {
             records: vec![String::from("@"), String::from("a"), String::from("b")],
             ..test_config(&server).clone()
         };
-        let summary = update_domains(&http_client, &config, new_ip).unwrap();
+        let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
         assert_eq!(
             summary,
             Updates {

@@ -118,7 +118,7 @@ impl fmt::Display for ClError {
 }
 
 impl<'a> CloudflareClient<'a> {
-    fn create<'b>(
+    async fn create<'b>(
         client: &'b reqwest::Client,
         config: &CloudflareConfig,
     ) -> Result<CloudflareClient<'b>, ClError> {
@@ -129,10 +129,12 @@ impl<'a> CloudflareClient<'a> {
             .header("X-Auth-Email", config.email.clone())
             .header("X-Auth-Key", config.key.clone())
             .send()
+            .await
             .map_err(|e| ClError {
                 kind: ClErrorKind::SendHttp("get zones", e),
             })?
             .json()
+            .await
             .map_err(|e| ClError {
                 kind: ClErrorKind::DecodeHttp("get zones", e),
             })?;
@@ -167,7 +169,7 @@ impl<'a> CloudflareClient<'a> {
 
     // Grab all the sub domains in the zone, but since there can be many of them, cloudflare
     // paginates the results.
-    fn paginate_domains(&self) -> Result<Vec<CloudflareDnsRecord>, ClError> {
+    async fn paginate_domains(&self) -> Result<Vec<CloudflareDnsRecord>, ClError> {
         let mut done = false;
         let mut page = 0;
         let mut dns_records: Vec<CloudflareDnsRecord> = Vec::new();
@@ -189,10 +191,12 @@ impl<'a> CloudflareClient<'a> {
                 .header("X-Auth-Email", self.email.clone())
                 .header("X-Auth-Key", self.key.clone())
                 .send()
+                .await
                 .map_err(|e| ClError {
                     kind: ClErrorKind::SendHttp("get records", e),
                 })?
                 .json()
+                .await
                 .map_err(|e| ClError {
                     kind: ClErrorKind::DecodeHttp("get records", e),
                 })?;
@@ -233,8 +237,8 @@ impl<'a> CloudflareClient<'a> {
         crate::core::log_missing_domains(&self.records, &actual, "cloudflare", &self.zone_name)
     }
 
-    fn update(&self, addr: Ipv4Addr) -> Result<Updates, ClError> {
-        let mut dns_records = self.paginate_domains()?;
+    async fn update(&self, addr: Ipv4Addr) -> Result<Updates, ClError> {
+        let mut dns_records = self.paginate_domains().await?;
         let missing = self.log_missing_domains(&dns_records) as i32;
         let mut current = 0;
         let mut updated = 0;
@@ -248,7 +252,7 @@ impl<'a> CloudflareClient<'a> {
                 Ok(ip) => {
                     if ip != addr {
                         updated += 1;
-                        self.update_record(&record, addr)?;
+                        self.update_record(&record, addr).await?;
 
                         info!(
                             "{} from zone {} updated from {} to {}",
@@ -265,7 +269,7 @@ impl<'a> CloudflareClient<'a> {
                 Err(ref e) => {
                     updated += 1;
                     warn!("could not parse domain {} address {} as ipv4 -- will replace it. Original error: {}", record.name, record.content, e);
-                    self.update_record(&record, addr)?;
+                    self.update_record(&record, addr).await?;
 
                     info!(
                         "{} from zone {} update from {} to {}",
@@ -282,7 +286,7 @@ impl<'a> CloudflareClient<'a> {
         })
     }
 
-    fn update_record(&self, record: &CloudflareDnsRecord, addr: Ipv4Addr) -> Result<(), ClError> {
+    async fn update_record(&self, record: &CloudflareDnsRecord, addr: Ipv4Addr) -> Result<(), ClError> {
         let url = format!(
             "https://api.cloudflare.com/client/v4/zones/{}/dns_records/{}",
             self.zone_id, record.id
@@ -301,10 +305,12 @@ impl<'a> CloudflareClient<'a> {
             .header("X-Auth-Key", self.key.clone())
             .json(&update)
             .send()
+            .await
             .map_err(|e| ClError {
                 kind: ClErrorKind::SendHttp("update dns", e),
             })?
             .json()
+            .await
             .map_err(|e| ClError {
                 kind: ClErrorKind::DecodeHttp("update dns", e),
             })?;
@@ -327,12 +333,12 @@ impl<'a> CloudflareClient<'a> {
 ///      than one desired domain in each page -- this methods cuts down requests
 ///  3. Each desired domain in the config is checked to ensure that it is set to our address. In
 ///     this way cloudflare is our cache (to guard against nefarious users updating out of band)
-pub fn update_domains(
+pub async fn update_domains(
     client: &reqwest::Client,
     config: &CloudflareConfig,
     addr: Ipv4Addr,
 ) -> Result<Updates, ClError> {
-    CloudflareClient::create(&client, &config)?.update(addr)
+    CloudflareClient::create(&client, &config).await?.update(addr).await
 }
 
 #[cfg(test)]
