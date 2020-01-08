@@ -37,12 +37,7 @@ default-features = false
 features = ["termcolor", "atty", "regex"]
 
 [dev-dependencies]
-actix-http-test = "0.2"
-actix-http = "0.2"
-
-[dev-dependencies.actix-web]
-version = "1"
-default-features = false
+rouille = "3"
 
 [package.metadata.deb]
 extended-description = """dness is a command line dynamic dns client"""
