@@ -248,9 +248,6 @@ pub async fn update_domains(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use actix_http::HttpService;
-    use actix_http_test::{TestServer, TestServerRuntime};
-    use actix_web::{http::StatusCode, web, App, HttpResponse};
     use serde_json::json;
 
     #[test]
@@ -290,55 +287,55 @@ mod tests {
         assert_eq!(actual, expected);
     }
 
-    fn unparseable_ipv4() -> HttpResponse {
-        HttpResponse::Ok()
-            .content_type("application/json")
-            .body(include_str!("../assets/godaddy-get-records.json"))
-    }
+    macro_rules! godaddy_rouille_server {
+        () => {{
+            use rouille::Response;
+            use rouille::Server;
 
-    fn grabbag_site() -> HttpResponse {
-        HttpResponse::Ok()
-            .content_type("application/json")
-            .body(r#"[{"name": "@", "data": "2.2.2.2"}, {"name": "a", "data": "2.1.2.2"}]"#)
-    }
+            let server = Server::new("localhost:0", |request| match request.url().as_str() {
+                "/v1/domains/domain-1.com/records/A" => Response::from_data(
+                    "application/json",
+                    include_bytes!("../assets/godaddy-get-records.json").to_vec(),
+                ),
+                "/v1/domains/domain-1.com/records/A/@" => Response::text("Nice job!"),
+                "/v1/domains/domain-2.com/records/A" => Response::from_data(
+                    "application/json",
+                    r#"[{"name": "@", "data": "2.2.2.2"}, {"name": "a", "data": "2.1.2.2"}]"#,
+                ),
+                "/v1/domains/domain-2.com/records/A/@" => Response::text("Nice job!"),
+                "/v1/domains/domain-2.com/records/A/a" => Response::text("Nice job!"),
+                _ => Response::empty_404(),
+            })
+            .unwrap();
 
-    fn update() -> HttpResponse {
-        HttpResponse::new(StatusCode::OK)
-    }
-
-    fn create_test_server() -> TestServerRuntime {
-        TestServer::new(|| {
-            HttpService::new(
-                App::new()
-                    .route(
-                        "/v1/domains/domain-1.com/records/A",
-                        web::to(unparseable_ipv4),
-                    )
-                    .route("/v1/domains/domain-1.com/records/A/@", web::to(update))
-                    .route("/v1/domains/domain-2.com/records/A", web::to(grabbag_site))
-                    .route("/v1/domains/domain-2.com/records/A/@", web::to(update))
-                    .route("/v1/domains/domain-2.com/records/A/a", web::to(update)),
-            )
-        })
-    }
-
-    fn test_config(server: &TestServerRuntime) -> GoDaddyConfig {
-        GoDaddyConfig {
-            base_url: String::from(server.url("")),
-            domain: String::from("domain-1.com"),
-            key: String::from("key-1"),
-            secret: String::from("secret-1"),
-            records: vec![String::from("@")],
-        }
+            let (tx, rx) = std::sync::mpsc::sync_channel(1);
+            let addr = server.server_addr().clone();
+            std::thread::spawn(move || {
+                while let Err(_) = rx.try_recv() {
+                    server.poll();
+                    std::thread::sleep(std::time::Duration::from_millis(50))
+                }
+            });
+            (tx, addr)
+        }};
     }
 
     #[tokio::test]
     async fn test_godaddy_unparseable_ipv4() {
-        let server = create_test_server();
+        let (tx, addr) = godaddy_rouille_server!();
         let http_client = reqwest::Client::new();
         let new_ip = Ipv4Addr::new(2, 2, 2, 2);
-        let config = test_config(&server);
+        let config = GoDaddyConfig {
+            base_url: format!("http://{}", addr),
+            domain: String::from("domain-1.com"),
+            key: String::from("key-1"),
+            secret: String::from("secret-1"),
+            records: vec![String::from("@")],
+        };
+
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
+        tx.send(()).unwrap();
+
         assert_eq!(
             summary,
             Updates {
@@ -351,15 +348,20 @@ mod tests {
 
     #[tokio::test]
     async fn test_godaddy_grabbag() {
-        let server = create_test_server();
+        let (tx, addr) = godaddy_rouille_server!();
         let http_client = reqwest::Client::new();
         let new_ip = Ipv4Addr::new(2, 2, 2, 2);
         let config = GoDaddyConfig {
+            base_url: format!("http://{}", addr),
             domain: String::from("domain-2.com"),
+            key: String::from("key-1"),
+            secret: String::from("secret-1"),
             records: vec![String::from("@"), String::from("a"), String::from("b")],
-            ..test_config(&server).clone()
         };
+
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
+        tx.send(()).unwrap();
+
         assert_eq!(
             summary,
             Updates {
