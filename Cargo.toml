@@ -12,7 +12,7 @@ edition = "2018"
 
 [dependencies]
 trust-dns-resolver = "0.18"
-reqwest = { version = "0.10", features = ["json"] }
+reqwest = { version = "0.10", default-features = false, features = ["json"] }
 serde_json = "1.0"
 toml = "0.5"
 structopt = "0.3.7"
@@ -27,6 +27,10 @@ features = ["derive"]
 [dependencies.log]
 version = "0.4"
 features = ["serde"]
+
+[features]
+default = ["reqwest/default-tls"]
+rustls = ["reqwest/rustls-tls"]
 
 # Disable logging timestamp info (ie: the humantime feature) as mechanisms like
 # systemd / journald will show the timestamp that received the log line at.
@@ -57,4 +61,6 @@ conf-files = ["etc/dness/dness.conf"]
 
 [package.metadata.deb.variants.musl]
 depends = ""
+features = ["rustls"]
+default-features = false
 conflicts = "dness"

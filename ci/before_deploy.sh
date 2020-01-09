@@ -19,7 +19,12 @@ main() {
     test -f Cargo.lock || cargo generate-lockfile
 
     if [ -n "$TARGET" ]; then
-        cross rustc --bin dness --target $TARGET --release -- -C lto
+        CARGO_FLAGS=""
+        if [ -n "$RUSTLS" ]; then
+            CARGO_FLAGS="--no-default-features --features rustls"
+        fi
+
+        cross rustc $CARGO_FLAGS --bin dness --target $TARGET --release -- -C lto
         if [ "$TARGET" = "x86_64-unknown-linux-musl" ]; then
             cargo install cargo-deb
             cross deb --target "$TARGET" --variant musl --no-build

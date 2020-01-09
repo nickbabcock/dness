@@ -4,16 +4,21 @@ set -ex
 
 main() {
     if [ -n "$TARGET" ]; then
-        cross build --all --target $TARGET
+        CARGO_FLAGS=""
+        if [ -n "$RUSTLS" ]; then
+            CARGO_FLAGS="--no-default-features --features rustls"
+        fi
+
+        cross build $CARGO_FLAGS --all --target $TARGET
 
         if [ ! -z $DISABLE_TESTS ]; then
             return
         fi
 
         if [ ! -z $NO_EXEC_TESTS ]; then
-            cross test --all --target $TARGET -- '::tests::'
+            cross test $CARGO_FLAGS --all --target $TARGET -- '::tests::'
         else
-            cross test --all --target $TARGET
+            cross test $CARGO_FLAGS --all --target $TARGET
         fi
     else
         cargo build --all
