@@ -104,13 +104,14 @@ async fn main() {
     let mut total_updates = Updates::default();
 
     for d in config.domains {
-        match d {
+        match &d {
             DomainConfig::Cloudflare(domain_config) => {
                 let start_cloudflare = Instant::now();
                 match cloudflare::update_domains(&http_client, &domain_config, addr).await {
                     Ok(updates) => {
                         info!(
-                            "processed cloudflare: {} ({}) in {}",
+                            "processed {}: {} ({}) in {}",
+                            d.display_name(),
                             domain_config.zone,
                             updates,
                             elapsed(start_cloudflare)
@@ -120,7 +121,8 @@ async fn main() {
                     Err(ref e) => {
                         failure = true;
                         let msg = format!(
-                            "could not update cloudflare domains in: {}",
+                            "could not update {} domains in: {}",
+                            d.display_name(),
                             domain_config.zone
                         );
                         log_err(&msg, e);
@@ -132,7 +134,8 @@ async fn main() {
                 match godaddy::update_domains(&http_client, &domain_config, addr).await {
                     Ok(updates) => {
                         info!(
-                            "processed godaddy: {} ({}) in {}",
+                            "processed {}: {} ({}) in {}",
+                            d.display_name(),
                             domain_config.domain,
                             updates,
                             elapsed(start_godaddy)
@@ -142,7 +145,8 @@ async fn main() {
                     Err(ref e) => {
                         failure = true;
                         let msg = format!(
-                            "could not update godaddy domains in: {}",
+                            "could not update {} domains in: {}",
+                            d.display_name(),
                             domain_config.domain
                         );
                         log_err(&msg, e);

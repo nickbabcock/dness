@@ -77,6 +77,15 @@ pub enum DomainConfig {
     GoDaddy(GoDaddyConfig),
 }
 
+impl DomainConfig {
+    pub fn display_name(&self) -> String {
+        match self {
+            DomainConfig::Cloudflare(_) => String::from("cloudflare"),
+            DomainConfig::GoDaddy(_) => String::from("godaddy"),
+        }
+    }
+}
+
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct CloudflareConfig {
