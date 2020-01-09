@@ -10,7 +10,11 @@ main() {
             return
         fi
 
-        cross test --all --target $TARGET
+        if [ ! -z $NO_EXEC_TESTS ]; then
+            cross test --all --target $TARGET -- '::tests::'
+        else
+            cross test --all --target $TARGET
+        fi
     else
         cargo build --all
         cargo test --all

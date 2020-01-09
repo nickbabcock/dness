@@ -66,8 +66,8 @@ fn init_configuration(file: &Option<String>) -> DnsConfig {
 }
 
 /// Resolves the WAN IP or exits with a non-zero status code
-fn resolve_ip() -> Ipv4Addr {
-    match lookup_ip() {
+async fn resolve_ip() -> Ipv4Addr {
+    match lookup_ip().await {
         Ok(c) => c,
         Err(e) => {
             log_err("could not successfully resolve IP", &e);
@@ -91,7 +91,7 @@ async fn main() {
     init_logging(config.log.level);
 
     let start_resolve = Instant::now();
-    let addr = resolve_ip();
+    let addr = resolve_ip().await;
     info!("resolved address to {} in {}", addr, elapsed(start_resolve));
 
     // Use a single HTTP client when updating dns records so that connections can be reused

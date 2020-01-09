@@ -1,11 +1,11 @@
 use failure::{Compat, Fail};
 use std::error;
 use std::fmt;
-use std::io::Error as IoError;
 use std::net::{IpAddr, Ipv4Addr};
+use tokio::runtime::Handle;
 use trust_dns_resolver::config::{NameServerConfigGroup, ResolverConfig, ResolverOpts};
 use trust_dns_resolver::error::ResolveError;
-use trust_dns_resolver::Resolver;
+use trust_dns_resolver::TokioAsyncResolver;
 
 #[derive(Debug)]
 pub struct LookupError {
@@ -14,7 +14,7 @@ pub struct LookupError {
 
 #[derive(Debug)]
 pub enum LookupErrorKind {
-    DnsCreation(IoError),
+    DnsCreation(Compat<ResolveError>),
     DnsResolve(Compat<ResolveError>),
     UnexpectedResponse(usize),
 }
@@ -43,11 +43,11 @@ impl fmt::Display for LookupError {
 }
 
 struct OpenDnsLookup {
-    resolver: Resolver,
+    resolver: TokioAsyncResolver,
 }
 
 impl OpenDnsLookup {
-    fn create() -> Result<Self, LookupError> {
+    async fn create() -> Result<Self, LookupError> {
         let config = ResolverConfig::from_parts(
             None,
             vec![],
@@ -61,18 +61,21 @@ impl OpenDnsLookup {
                 53,
             ),
         );
-        let resolver = Resolver::new(config, ResolverOpts::default()).map_err(|e| LookupError {
-            kind: LookupErrorKind::DnsCreation(e),
-        })?;
+        let resolver = TokioAsyncResolver::new(config, ResolverOpts::default(), Handle::current())
+            .await
+            .map_err(|e| LookupError {
+                kind: LookupErrorKind::DnsCreation(e.compat()),
+            })?;
         Ok(OpenDnsLookup { resolver })
     }
 
-    fn lookup(&self) -> Result<Ipv4Addr, LookupError> {
+    async fn lookup(&self) -> Result<Ipv4Addr, LookupError> {
         // When we query opendns for the special domain of "myip.opendns.com" it will return to us
         // our IP
         let response = self
             .resolver
             .ipv4_lookup("myip.opendns.com.")
+            .await
             .map_err(|e| LookupError {
                 kind: LookupErrorKind::DnsResolve(e.compat()),
             })?;
@@ -89,18 +92,18 @@ impl OpenDnsLookup {
     }
 }
 
-pub fn lookup_ip() -> Result<Ipv4Addr, LookupError> {
-    OpenDnsLookup::create()?.lookup()
+pub async fn lookup_ip() -> Result<Ipv4Addr, LookupError> {
+    OpenDnsLookup::create().await?.lookup().await
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn opendns_lookup_ip_test() {
+    #[tokio::test]
+    async fn opendns_lookup_ip_test() {
         // Heads up: this test requires internet connectivity
-        let ip = lookup_ip().unwrap();
+        let ip = lookup_ip().await.unwrap();
         assert!(ip != Ipv4Addr::new(127, 0, 0, 1));
     }
 }
