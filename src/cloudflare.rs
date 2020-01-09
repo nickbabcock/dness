@@ -317,7 +317,7 @@ impl<'a> CloudflareClient<'a> {
 
         if !response.success {
             Err(ClError {
-                kind: ClErrorKind::ErrorResponse("update dns", response.errors.clone()),
+                kind: ClErrorKind::ErrorResponse("update dns", response.errors),
             })
         } else {
             Ok(())
