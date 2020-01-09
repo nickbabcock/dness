@@ -13,10 +13,10 @@ env:
 matrix:
   include:
     # Linux
-    - env: TARGET=aarch64-unknown-linux-gnu
-    - env: TARGET=arm-unknown-linux-gnueabi
-    - env: TARGET=armv7-unknown-linux-gnueabihf
-    - env: TARGET=mips-unknown-linux-gnu
+    - env: TARGET=aarch64-unknown-linux-gnu NO_EXEC_TESTS=1
+    - env: TARGET=arm-unknown-linux-gnueabi NO_EXEC_TESTS=1
+    - env: TARGET=armv7-unknown-linux-gnueabihf NO_EXEC_TESTS=1
+    - env: TARGET=mips-unknown-linux-gnu NO_EXEC_TESTS=1
     - env: TARGET=x86_64-unknown-linux-gnu
     - env: TARGET=x86_64-unknown-linux-musl
 
