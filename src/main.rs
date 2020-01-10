@@ -23,7 +23,7 @@ struct Opt {
     config_file: Option<String>,
 }
 
-fn log_err<E: error::Error>(context: &str, err: &E) {
+fn log_err(context: &str, err: Box<dyn error::Error>) {
     let mut msg = String::new();
     let _ = writeln!(msg, "{} ", context);
     let _ = write!(msg, "\tcaused by: {}", err);
@@ -56,7 +56,7 @@ fn init_configuration(file: &Option<String>) -> DnsConfig {
                 // the user will see the error printed.
                 init_logging(LevelFilter::Warn);
                 let desc = format!("could not configure application from: {}", &config_file);
-                log_err(&desc, &e);
+                log_err(&desc, Box::new(e));
                 std::process::exit(1)
             }
         }
@@ -70,7 +70,7 @@ async fn resolve_ip() -> Ipv4Addr {
     match lookup_ip().await {
         Ok(c) => c,
         Err(e) => {
-            log_err("could not successfully resolve IP", &e);
+            log_err("could not successfully resolve IP", Box::new(e));
             std::process::exit(1)
         }
     }
@@ -80,6 +80,25 @@ fn elapsed(start: Instant) -> String {
     Duration::from_std(Instant::now().duration_since(start))
         .map(|x| format!("{}ms", x.num_milliseconds()))
         .unwrap_or_else(|_| String::from("<error>"))
+}
+
+async fn update_provider(
+    http_client: &reqwest::Client,
+    addr: Ipv4Addr,
+    domain: &DomainConfig,
+) -> Result<Updates, Box<dyn std::error::Error>> {
+    match domain {
+        DomainConfig::Cloudflare(domain_config) => {
+            cloudflare::update_domains(http_client, domain_config, addr)
+                .await
+                .map_err(|e| e.into())
+        }
+        DomainConfig::GoDaddy(domain_config) => {
+            godaddy::update_domains(http_client, domain_config, addr)
+                .await
+                .map_err(|e| e.into())
+        }
+    }
 }
 
 #[tokio::main]
@@ -104,54 +123,21 @@ async fn main() {
     let mut total_updates = Updates::default();
 
     for d in config.domains {
-        match &d {
-            DomainConfig::Cloudflare(domain_config) => {
-                let start_cloudflare = Instant::now();
-                match cloudflare::update_domains(&http_client, &domain_config, addr).await {
-                    Ok(updates) => {
-                        info!(
-                            "processed {}: {} ({}) in {}",
-                            d.display_name(),
-                            domain_config.zone,
-                            updates,
-                            elapsed(start_cloudflare)
-                        );
-                        total_updates += updates;
-                    }
-                    Err(ref e) => {
-                        failure = true;
-                        let msg = format!(
-                            "could not update {} domains in: {}",
-                            d.display_name(),
-                            domain_config.zone
-                        );
-                        log_err(&msg, e);
-                    }
-                }
+        let start_update = Instant::now();
+        match update_provider(&http_client, addr, &d).await {
+            Ok(updates) => {
+                info!(
+                    "processed {}: ({}) in {}",
+                    d.display_name(),
+                    updates,
+                    elapsed(start_update)
+                );
+                total_updates += updates;
             }
-            DomainConfig::GoDaddy(domain_config) => {
-                let start_godaddy = Instant::now();
-                match godaddy::update_domains(&http_client, &domain_config, addr).await {
-                    Ok(updates) => {
-                        info!(
-                            "processed {}: {} ({}) in {}",
-                            d.display_name(),
-                            domain_config.domain,
-                            updates,
-                            elapsed(start_godaddy)
-                        );
-                        total_updates += updates;
-                    }
-                    Err(ref e) => {
-                        failure = true;
-                        let msg = format!(
-                            "could not update {} domains in: {}",
-                            d.display_name(),
-                            domain_config.domain
-                        );
-                        log_err(&msg, e);
-                    }
-                }
+            Err(e) => {
+                failure = true;
+                let msg = format!("could not update {}", d.display_name(),);
+                log_err(&msg, e);
             }
         }
     }

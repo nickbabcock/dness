@@ -80,8 +80,8 @@ pub enum DomainConfig {
 impl DomainConfig {
     pub fn display_name(&self) -> String {
         match self {
-            DomainConfig::Cloudflare(_) => String::from("cloudflare"),
-            DomainConfig::GoDaddy(_) => String::from("godaddy"),
+            DomainConfig::Cloudflare(c) => format!("{} ({})", c.zone, "cloudflare"),
+            DomainConfig::GoDaddy(c) => format!("{} ({})", c.domain, "godaddy"),
         }
     }
 }
