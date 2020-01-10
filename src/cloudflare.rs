@@ -286,7 +286,11 @@ impl<'a> CloudflareClient<'a> {
         })
     }
 
-    async fn update_record(&self, record: &CloudflareDnsRecord, addr: Ipv4Addr) -> Result<(), ClError> {
+    async fn update_record(
+        &self,
+        record: &CloudflareDnsRecord,
+        addr: Ipv4Addr,
+    ) -> Result<(), ClError> {
         let url = format!(
             "https://api.cloudflare.com/client/v4/zones/{}/dns_records/{}",
             self.zone_id, record.id
@@ -338,7 +342,10 @@ pub async fn update_domains(
     config: &CloudflareConfig,
     addr: Ipv4Addr,
 ) -> Result<Updates, ClError> {
-    CloudflareClient::create(&client, &config).await?.update(addr).await
+    CloudflareClient::create(&client, &config)
+        .await?
+        .update(addr)
+        .await
 }
 
 #[cfg(test)]

@@ -132,7 +132,8 @@ impl<'a> GoClient<'a> {
 
     async fn fetch_records(&self) -> Result<Vec<GoRecord>, DnessError> {
         let get_url = format!("{}/v1/domains/{}/records/A", self.base_url, self.domain);
-        let response = self.client
+        let response = self
+            .client
             .get(&get_url)
             .header("Authorization", self.auth_header())
             .send()
@@ -168,7 +169,11 @@ impl<'a> GoClient<'a> {
         Ok(())
     }
 
-    async fn ensure_current_ip(&self, record: &GoRecord, addr: Ipv4Addr) -> Result<Updates, DnessError> {
+    async fn ensure_current_ip(
+        &self,
+        record: &GoRecord,
+        addr: Ipv4Addr,
+    ) -> Result<Updates, DnessError> {
         let mut current = 0;
         let mut updated = 0;
         match record.data.parse::<Ipv4Addr>() {
