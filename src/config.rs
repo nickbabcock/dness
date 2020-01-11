@@ -75,6 +75,7 @@ impl Default for LogConfig {
 pub enum DomainConfig {
     Cloudflare(CloudflareConfig),
     GoDaddy(GoDaddyConfig),
+    Namecheap(NamecheapConfig),
 }
 
 impl DomainConfig {
@@ -82,6 +83,7 @@ impl DomainConfig {
         match self {
             DomainConfig::Cloudflare(c) => format!("{} ({})", c.zone, "cloudflare"),
             DomainConfig::GoDaddy(c) => format!("{} ({})", c.domain, "godaddy"),
+            DomainConfig::Namecheap(c) => format!("{} ({})", c.domain, "namecheap"),
         }
     }
 }
@@ -106,8 +108,22 @@ pub struct GoDaddyConfig {
     pub records: Vec<String>,
 }
 
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct NamecheapConfig {
+    #[serde(default = "namecheap_base_url")]
+    pub base_url: String,
+    pub domain: String,
+    pub ddns_password: String,
+    pub records: Vec<String>,
+}
+
 fn godaddy_base_url() -> String {
     String::from("https://api.godaddy.com")
+}
+
+fn namecheap_base_url() -> String {
+    String::from("https://dynamicdns.park-your-domain.com")
 }
 
 pub fn parse_config<P: AsRef<Path>>(path: P) -> Result<DnsConfig, ConfigError> {
