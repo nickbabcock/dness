@@ -2,7 +2,7 @@ use crate::config::NamecheapConfig;
 use crate::core::Updates;
 use crate::dns::DnsResolver;
 use crate::errors::DnessError;
-use log::warn;
+use log::{warn, info};
 use std::net::Ipv4Addr;
 
 #[derive(Debug)]
@@ -12,6 +12,7 @@ pub struct NamecheapProvider<'a> {
 }
 
 impl<'a> NamecheapProvider<'a> {
+    /// https://www.namecheap.com/support/knowledgebase/article.aspx/29/11/how-do-i-use-a-browser-to-dynamically-update-the-hosts-ip
     pub async fn update_domain(&self, host: &str, wan: Ipv4Addr) -> Result<(), DnessError> {
         let base = self.config.base_url.trim_end_matches('/').to_string();
         let get_url = format!("{}/update", base);
@@ -57,23 +58,23 @@ pub async fn update_domains(
     let namecheap = NamecheapProvider { client, config };
 
     let mut results = Updates::default();
-    let queries = config.records.iter().map(|x| {
-        if x == "@" {
+
+    for record in &config.records {
+        let dns_query = if record == "@" {
             format!("{}.", config.domain)
         } else {
-            format!("{}.{}.", x, config.domain)
-        }
-    });
+            format!("{}.{}.", record, config.domain)
+        };
 
-    for record in queries {
-        let response = resolver.ipv4_lookup(&record).await;
+        let response = resolver.ipv4_lookup(&dns_query).await;
 
         match response {
             Ok(ip) => {
                 if ip == wan {
                     results.current += 1;
                 } else {
-                    namecheap.update_domain(&record, wan).await?;
+                    namecheap.update_domain(record, wan).await?;
+                    info!("{} from domain {} updated from {} to {}", record, config.domain, ip, wan);
                     results.updated += 1;
                 }
             }
