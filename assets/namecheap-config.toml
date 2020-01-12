@@ -1,0 +1,10 @@
+# Namecheap requires that dynamic dns is enabled in their UI!
+type = "namecheap"
+domain = "test-dness-1.xyz"
+ddns_password = "super_secret_password"
+
+# The records to update. Make sure they are listed as A + Dynamic DNS
+# "@" = "test-dness-1.xyz"
+# "* = "<any-sub-domain>.test-dness-1.xyz"
+# "sub = "sub.test-dness-1.xyz"
+records = [ "@", "*", "sub" ]

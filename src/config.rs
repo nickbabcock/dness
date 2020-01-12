@@ -203,6 +203,21 @@ mod tests {
     }
 
     #[test]
+    fn deserialize_config_namecheap() {
+        let toml_str = &include_str!("../assets/namecheap-config.toml");
+        let config: DomainConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(
+            config,
+            DomainConfig::Namecheap(NamecheapConfig {
+                base_url: String::from("https://dynamicdns.park-your-domain.com"),
+                domain: String::from("test-dness-1.xyz"),
+                ddns_password: String::from("super_secret_password"),
+                records: vec![String::from("@"), String::from("*"), String::from("sub")]
+            })
+        );
+    }
+
+    #[test]
     fn deserialize_config_readme() {
         let toml_str = &include_str!("../assets/readme-config.toml");
         let config: DnsConfig = toml::from_str(toml_str).unwrap();
