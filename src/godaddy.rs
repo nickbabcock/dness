@@ -1,101 +1,12 @@
 use crate::config::GoDaddyConfig;
-use crate::dns::Updates;
+use crate::core::Updates;
+use crate::errors::DnessError;
 use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap as Map;
 use std::collections::HashSet;
-use std::error;
-use std::fmt;
 use std::net::Ipv4Addr;
-
-#[derive(Debug)]
-pub struct DnessError {
-    kind: DnessErrorKind,
-}
-
-impl DnessError {
-    fn send_http(url: &str, context: &str, source: reqwest::Error) -> DnessError {
-        DnessError {
-            kind: DnessErrorKind::SendHttp {
-                url: String::from(url),
-                context: String::from(context),
-                source,
-            },
-        }
-    }
-
-    fn bad_response(url: &str, context: &str, source: reqwest::Error) -> DnessError {
-        DnessError {
-            kind: DnessErrorKind::BadResponse {
-                url: String::from(url),
-                context: String::from(context),
-                source,
-            },
-        }
-    }
-
-    fn deserialize(url: &str, context: &str, source: reqwest::Error) -> DnessError {
-        DnessError {
-            kind: DnessErrorKind::Deserialize {
-                url: String::from(url),
-                context: String::from(context),
-                source,
-            },
-        }
-    }
-}
-
-impl error::Error for DnessError {
-    fn cause(&self) -> Option<&dyn error::Error> {
-        match self.kind {
-            DnessErrorKind::SendHttp { ref source, .. } => Some(source),
-            DnessErrorKind::BadResponse { ref source, .. } => Some(source),
-            DnessErrorKind::Deserialize { ref source, .. } => Some(source),
-        }
-    }
-}
-
-impl fmt::Display for DnessError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self.kind {
-            DnessErrorKind::SendHttp { url, context, .. } => write!(
-                f,
-                "unable to send http request for {}: url attempted: {}",
-                context, url
-            ),
-            DnessErrorKind::BadResponse { url, context, .. } => write!(
-                f,
-                "received bad http response for {}: url attempted: {}",
-                context, url
-            ),
-            DnessErrorKind::Deserialize { url, context, .. } => write!(
-                f,
-                "unable to deserialize response for {}: url attempted: {}",
-                context, url
-            ),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub enum DnessErrorKind {
-    SendHttp {
-        url: String,
-        context: String,
-        source: reqwest::Error,
-    },
-    BadResponse {
-        url: String,
-        context: String,
-        source: reqwest::Error,
-    },
-    Deserialize {
-        url: String,
-        context: String,
-        source: reqwest::Error,
-    },
-}
 
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 struct GoRecord {

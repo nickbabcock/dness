@@ -29,8 +29,8 @@ version = "0.4"
 features = ["serde"]
 
 [features]
-default = ["reqwest/default-tls"]
-rustls = ["reqwest/rustls-tls"]
+default = ["reqwest/default-tls", "trust-dns-resolver/dns-over-native-tls"]
+rustls = ["reqwest/rustls-tls", "trust-dns-resolver/dns-over-rustls"]
 
 # Disable logging timestamp info (ie: the humantime feature) as mechanisms like
 # systemd / journald will show the timestamp that received the log line at.

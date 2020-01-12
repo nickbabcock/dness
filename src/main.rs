@@ -2,12 +2,13 @@ mod cloudflare;
 mod config;
 mod core;
 mod dns;
+mod errors;
 mod godaddy;
-mod iplookup;
+mod namecheap;
 
 use crate::config::{parse_config, DnsConfig, DomainConfig};
-use crate::dns::Updates;
-use crate::iplookup::lookup_ip;
+use crate::core::Updates;
+use crate::dns::wan_lookup_ip;
 use chrono::Duration;
 use log::{error, info, LevelFilter};
 use std::error;
@@ -67,7 +68,7 @@ fn init_configuration(file: &Option<String>) -> DnsConfig {
 
 /// Resolves the WAN IP or exits with a non-zero status code
 async fn resolve_ip() -> Ipv4Addr {
-    match lookup_ip().await {
+    match wan_lookup_ip().await {
         Ok(c) => c,
         Err(e) => {
             log_err("could not successfully resolve IP", Box::new(e));
@@ -95,6 +96,11 @@ async fn update_provider(
         }
         DomainConfig::GoDaddy(domain_config) => {
             godaddy::update_domains(http_client, domain_config, addr)
+                .await
+                .map_err(|e| e.into())
+        }
+        DomainConfig::Namecheap(domain_config) => {
+            namecheap::update_domains(http_client, domain_config, addr)
                 .await
                 .map_err(|e| e.into())
         }
