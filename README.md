@@ -193,6 +193,31 @@ GoDaddy dynamic dns service works as the following:
 2. Find all the expected records (and log those that are missing) and check their current IP
 3. Update the remote IP as needed, ensuring that original properties are preserved in the upload, so that we don't overwrite a property like TTL.
 
+#### Namecheap
+
+```toml
+# Namecheap requires that dynamic dns is enabled in their UI!
+type = "namecheap"
+domain = "test-dness-1.xyz"
+ddns_password = "super_secret_password"
+
+# The records to update. Make sure they are listed as A + Dynamic DNS
+# "@" = "test-dness-1.xyz"
+# "* = "<any-sub-domain>.test-dness-1.xyz"
+# "sub = "sub.test-dness-1.xyz"
+records = [ "@", "*", "sub" ]
+```
+
+The namecheap services requires dynamic dns enabled in their UI.
+
+Updating the dns entry works as follows:
+
+- A dns query is sent to cloudflare to check the IP of the record
+- If the IP is different than WAN then a request is sent to namecheap to update it
+- If the IP is the same, no action is taken
+
+This method suffers from natural flow of dns propagation. When namecheap receives the update, it may take up to an hour for cloudflare to see the new record. In the meantime, dness will keep updating namecheap servers with the WAN. This has no consequential side effects other than momentary confusion why updates are being sent to namecheap every 5 minutes. Future revisions of this provider may use another method (like API integration) if the current method proves deficient enough.
+
 ### Supported WAN IP Resolvers
 
 No other WAN IP resolvers are available, but it certainly possible to add other DNS or HTTP resolvers in the future.
