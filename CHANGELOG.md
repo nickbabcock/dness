@@ -1,3 +1,10 @@
+## 0.2.0 - 2020-01-13
+
+- Slight change to log entries
+- Musl (static builds) releases now bind to rustls instead of openssl
+- Add Namecheap provider
+- Internal dependencies updated
+
 ## 0.1.1 - 2019-01-18
 
 - Add GoDaddy provider
