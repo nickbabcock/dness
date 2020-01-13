@@ -50,11 +50,16 @@ pub async fn update_domains(
     config: &NamecheapConfig,
     wan: Ipv4Addr,
 ) -> Result<Updates, DnessError> {
-    // Use cloudflare's DNS over opendns so that we can query the records over tls. Opendns doesn't
-    // seem to support dns over tls yet. We're going to be using dns to check all the records
-    // listed in the config so that we can be a good netizen and needlessly send update requests to
-    // namecheap's servers.
-    let resolver = DnsResolver::create_cloudflare_tls().await?;
+    // Use cloudflare's DNS to query all the configured records. Ideally we'd use dns
+    // over tls for privacy purposes but that feature is experimental and we don't want to rely on
+    // experimental features here: https://github.com/bluejekyll/trust-dns/issues/989
+    //
+    // We check all the records with DNS before issuing any requests to update them in namecheap so
+    // that we can be a good netizen. One issue seen with this approach is that in subsequent
+    // invocations (cron, timers, etc) -- the dns record won't have propagated yet. I haven't seen
+    // any issues with setting the namecheap record to an unchanged value, but it is less than
+    // ideal. Namecheap does have a dns api that may be worth exploring.
+    let resolver = DnsResolver::create_cloudflare().await?;
     let namecheap = NamecheapProvider { client, config };
 
     let mut results = Updates::default();

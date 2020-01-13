@@ -29,8 +29,8 @@ impl DnsResolver {
         Self::from_config(config).await
     }
 
-    pub async fn create_cloudflare_tls() -> Result<Self, DnsError> {
-        Self::from_config(ResolverConfig::cloudflare_tls()).await
+    pub async fn create_cloudflare() -> Result<Self, DnsError> {
+        Self::from_config(ResolverConfig::cloudflare()).await
     }
 
     pub async fn from_config(config: ResolverConfig) -> Result<Self, DnsError> {
@@ -99,9 +99,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn cloudflare_tls_test() {
+    async fn cloudflare_test() {
         // Heads up: this test requires internet connectivity
-        let resolver = DnsResolver::create_cloudflare_tls().await.unwrap();
+        let resolver = DnsResolver::create_cloudflare().await.unwrap();
         let ip = resolver.ipv4_lookup("example.com.").await.unwrap();
         assert!(ip != Ipv4Addr::new(127, 0, 0, 1));
     }
