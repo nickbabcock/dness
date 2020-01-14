@@ -22,7 +22,7 @@ main() {
         CARGO_FLAG="$CARGO_FLAGS --target $TARGET"
     fi
 
-    if [ -n "$TARGET" && "$TARGET" != "x86_64-unknown-linux-musl" && "$TARGET" != "x86_64-unknown-linux-gnu" ]; then
+    if [ -n "$TARGET" ]; then
         CARGO_CMD="cross"
     fi
 
