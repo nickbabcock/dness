@@ -17,8 +17,11 @@ matrix:
     - env: TARGET=arm-unknown-linux-gnueabi NO_EXEC_TESTS=1
     - env: TARGET=armv7-unknown-linux-gnueabihf NO_EXEC_TESTS=1
     - env: TARGET=mips-unknown-linux-gnu NO_EXEC_TESTS=1
-    - env: TARGET=x86_64-unknown-linux-gnu
-    - env: TARGET=x86_64-unknown-linux-musl RUSTLS=1
+    - env: TARGET=x86_64-unknown-linux-gnu DEBIAN_PACKAGING=1
+    - env: TARGET=x86_64-unknown-linux-musl RUSTLS=1 DEBIAN_PACKAGING=1
+      addons:
+        apt:
+          packages: [musl-tools]
 
     # OSX
     - env: TARGET=x86_64-apple-darwin
@@ -26,9 +29,6 @@ matrix:
 
     # *BSD
     - env: TARGET=x86_64-unknown-netbsd DISABLE_TESTS=1
-
-    # build / test on rust stable deploy with debian packaging
-    - env: DEBIAN_PACKAGING=1
 
     # Testing other channels
     - rust: nightly
