@@ -19,7 +19,7 @@ main() {
     CARGO_FLAGS=""
 
     if [ -n "$TARGET" ]; then
-        CARGO_FLAG="$CARGO_FLAGS --target $TARGET"
+        CARGO_FLAGS="$CARGO_FLAGS --target $TARGET"
     fi
 
     if [ -n "$TARGET" ]; then
