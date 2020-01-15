@@ -1,7 +1,6 @@
 use crate::errors::{DnsError, DnsErrorKind};
 use failure::Fail;
 use std::net::{IpAddr, Ipv4Addr};
-use tokio::runtime::Handle;
 use trust_dns_resolver::config::{NameServerConfigGroup, ResolverConfig, ResolverOpts};
 use trust_dns_resolver::TokioAsyncResolver;
 
@@ -34,7 +33,7 @@ impl DnsResolver {
     }
 
     pub async fn from_config(config: ResolverConfig) -> Result<Self, DnsError> {
-        let resolver = TokioAsyncResolver::new(config, ResolverOpts::default(), Handle::current())
+        let resolver = TokioAsyncResolver::tokio(config, ResolverOpts::default())
             .await
             .map_err(|e| DnsError {
                 kind: DnsErrorKind::DnsCreation(e.compat()),
