@@ -1,5 +1,4 @@
 use crate::errors::{DnsError, DnsErrorKind};
-use failure::Fail;
 use std::net::{IpAddr, Ipv4Addr};
 use trust_dns_resolver::config::{NameServerConfigGroup, ResolverConfig, ResolverOpts};
 use trust_dns_resolver::TokioAsyncResolver;
@@ -36,7 +35,7 @@ impl DnsResolver {
         let resolver = TokioAsyncResolver::tokio(config, ResolverOpts::default())
             .await
             .map_err(|e| DnsError {
-                kind: DnsErrorKind::DnsCreation(e.compat()),
+                kind: DnsErrorKind::DnsCreation(e),
             })?;
 
         Ok(DnsResolver { resolver })
@@ -50,7 +49,7 @@ impl DnsResolver {
             .ipv4_lookup(host)
             .await
             .map_err(|e| DnsError {
-                kind: DnsErrorKind::DnsResolve(e.compat()),
+                kind: DnsErrorKind::DnsResolve(e),
             })?;
 
         // If we get anything other than 1 address back, it's an error
