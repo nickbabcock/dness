@@ -1,4 +1,3 @@
-use failure::Compat;
 use std::error;
 use std::fmt;
 use trust_dns_resolver::error::ResolveError;
@@ -120,8 +119,8 @@ pub struct DnsError {
 
 #[derive(Debug)]
 pub enum DnsErrorKind {
-    DnsCreation(Compat<ResolveError>),
-    DnsResolve(Compat<ResolveError>),
+    DnsCreation(ResolveError),
+    DnsResolve(ResolveError),
     UnexpectedResponse(usize),
 }
 
