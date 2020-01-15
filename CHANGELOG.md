@@ -1,3 +1,7 @@
+## 0.2.1 - 2020-01-14
+
+- Fixed an issue with the static builds not being deployed to github issues. No code changes.
+
 ## 0.2.0 - 2020-01-13
 
 - Slight change to log entries
