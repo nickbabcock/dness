@@ -321,7 +321,7 @@ dependencies = [
  "structopt 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.5.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "trust-dns-resolver 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "trust-dns-resolver 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1822,19 +1822,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "trust-dns-native-tls"
-version = "0.19.0"
+version = "0.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "futures 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "native-tls 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-tls 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "trust-dns-proto 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "trust-dns-proto 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "trust-dns-proto"
-version = "0.19.0"
+version = "0.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "async-trait 0.1.22 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1853,7 +1853,7 @@ dependencies = [
 
 [[package]]
 name = "trust-dns-resolver"
-version = "0.19.0"
+version = "0.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "backtrace 0.3.40 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1870,15 +1870,15 @@ dependencies = [
  "tokio 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-rustls 0.12.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-tls 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "trust-dns-native-tls 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "trust-dns-proto 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "trust-dns-rustls 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "trust-dns-native-tls 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "trust-dns-proto 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "trust-dns-rustls 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "webpki-roots 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "trust-dns-rustls"
-version = "0.19.0"
+version = "0.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "futures 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1886,7 +1886,7 @@ dependencies = [
  "rustls 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-rustls 0.12.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "trust-dns-proto 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "trust-dns-proto 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "webpki 0.21.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -2412,10 +2412,10 @@ dependencies = [
 "checksum toml 0.5.5 (registry+https://github.com/rust-lang/crates.io-index)" = "01d1404644c8b12b16bfcffa4322403a91a451584daaaa7c28d3152e6cbc98cf"
 "checksum tower-service 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e987b6bf443f4b5b3b6f38704195592cca41c5bb7aedd3c3693c7081f8289860"
 "checksum treeline 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a7f741b240f1a48843f9b8e0444fb55fb2a4ff67293b50a9179dfd5ea67f8d41"
-"checksum trust-dns-native-tls 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ceb4490a136c41b01cb953ba6096f32383df1f717b25be5475b5b99a6b34f018"
-"checksum trust-dns-proto 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c80c8d03aaccb5779e647177eb1193cb99cb8c79e2a3c5cccb8def7ea0d35ca9"
-"checksum trust-dns-resolver 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bc1477371d1813366113cb99f8375b49484af17de78adb35f00cd0d8e040bcf7"
-"checksum trust-dns-rustls 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2309b664e79d441ea87752c4565de4727915fb377f7d55f9b8220b8b212a5708"
+"checksum trust-dns-native-tls 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)" = "e3ef2072974a55f1102d67143f7bab795ca58fdaabab0b64b3d539ca58dd703c"
+"checksum trust-dns-proto 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)" = "da8316d3a7fa285971a602e42ec6d31639cc3744e77694d89fea42152968063b"
+"checksum trust-dns-resolver 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)" = "4b1d87b791540d243a84329cc922a76daf9b89680053f947873ca89078a14a77"
+"checksum trust-dns-rustls 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)" = "dcaab11da895c0aba7427ca90b630540294baa6b004ee2b51961a888bf7ebc80"
 "checksum try-lock 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "e604eb7b43c06650e854be16a2a03155743d3752dd1c943f6829e26b7a36e382"
 "checksum twoway 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "59b11b2b5241ba34be09c3cc85a36e56e48f9888862e19cedf23336d35316ed1"
 "checksum unicase 1.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7f4765f83163b74f957c797ad9253caf97f103fb064d3999aea9568d09fc8a33"
