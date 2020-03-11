@@ -16,6 +16,8 @@ main() {
 
     if [ -n "$RUSTLS" ]; then
         CARGO_FLAGS="$CARGO_FLAGS --no-default-features --features rustls"
+    elif [ -n "$TARGET" ]; then
+        CARGO_FLAGS="$CARGO_FLAGS --features vendored-openssl"
     fi
 
     $CARGO_CMD build $CARGO_FLAGS --all

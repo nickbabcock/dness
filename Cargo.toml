@@ -18,6 +18,7 @@ toml = "0.5"
 structopt = "0.3.9"
 chrono = "0.4"
 tokio = { version = "0.2", features = ["rt-core", "macros"] }
+openssl = { version = '0.10', optional = true }
 
 [dependencies.serde]
 version = "1.0"
@@ -29,6 +30,7 @@ features = ["serde"]
 
 [features]
 default = ["reqwest/default-tls", "trust-dns-resolver/dns-over-native-tls"]
+vendored-openssl = ["openssl/vendored"]
 rustls = ["reqwest/rustls-tls", "trust-dns-resolver/dns-over-rustls"]
 
 # Disable logging timestamp info (ie: the humantime feature) as mechanisms like

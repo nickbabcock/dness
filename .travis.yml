@@ -1,7 +1,5 @@
 # Based on the "trust" template v0.1.2
 # https://github.com/japaric/trust/tree/v0.1.2
-
-dist: trusty
 language: rust
 services: docker
 sudo: required
@@ -17,6 +15,7 @@ matrix:
     - env: TARGET=arm-unknown-linux-gnueabi NO_EXEC_TESTS=1
     - env: TARGET=armv7-unknown-linux-gnueabihf NO_EXEC_TESTS=1
     - env: TARGET=mips-unknown-linux-gnu NO_EXEC_TESTS=1
+    - env: TARGET=i686-unknown-linux-gnu
     - env: TARGET=x86_64-unknown-linux-gnu DEBIAN_PACKAGING=1
     - env: TARGET=x86_64-unknown-linux-musl RUSTLS=1 DEBIAN_PACKAGING=1
       addons:
@@ -27,12 +26,10 @@ matrix:
     - env: TARGET=x86_64-apple-darwin
       os: osx
 
-    # *BSD
-    - env: TARGET=x86_64-unknown-netbsd DISABLE_TESTS=1
-
     # Testing other channels
     - rust: nightly
     - rust: beta
+    - rust: stable
 
 before_install:
   - set -e
@@ -67,7 +64,7 @@ deploy:
     # In this example, there are some targets that are tested using the stable
     # and nightly channels. This condition makes sure there is only one release
     # for such targets and that's generated using the stable channel
-    condition: $TRAVIS_RUST_VERSION = stable
+    condition: "$TRAVIS_RUST_VERSION = stable && -n $TARGET"
     tags: true
   provider: releases
   skip_cleanup: true
