@@ -47,9 +47,9 @@ rouille = "3"
 
 [package.metadata.deb]
 extended-description = """dness is a command line dynamic dns client"""
-depends = "libssl1.1"
 section = "utility"
 priority = "optional"
+features = ["openssl-vendored"]
 provides = "dness"
 conflicts = "dness-musl"
 assets = [
