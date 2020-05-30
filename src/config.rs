@@ -40,14 +40,31 @@ impl fmt::Display for ConfigError {
     }
 }
 
-#[derive(Deserialize, Clone, PartialEq, Debug, Default)]
+#[derive(Deserialize, Clone, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct DnsConfig {
+    #[serde(default = "default_resolver")]
+    pub ip_resolver: String,
+
     #[serde(default)]
     pub log: LogConfig,
 
     #[serde(default)]
     pub domains: Vec<DomainConfig>,
+}
+
+fn default_resolver() -> String {
+    String::from("opendns")
+}
+
+impl Default for DnsConfig {
+    fn default() -> Self {
+        DnsConfig {
+            ip_resolver: default_resolver(),
+            log: Default::default(),
+            domains: Default::default(),
+        }
+    }
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -151,6 +168,7 @@ mod tests {
         assert_eq!(
             config,
             DnsConfig {
+                ip_resolver: String::from("opendns"),
                 log: LogConfig {
                     level: LevelFilter::Info,
                 },
@@ -173,6 +191,7 @@ mod tests {
         assert_eq!(
             config,
             DnsConfig {
+                ip_resolver: String::from("opendns"),
                 log: LogConfig {
                     level: LevelFilter::Info,
                 },
@@ -224,6 +243,7 @@ mod tests {
         assert_eq!(
             config,
             DnsConfig {
+                ip_resolver: String::from("opendns"),
                 log: LogConfig {
                     level: LevelFilter::Debug,
                 },
@@ -244,6 +264,22 @@ mod tests {
                         ]
                     })
                 ]
+            }
+        );
+    }
+
+    #[test]
+    fn deserialize_ipify_config() {
+        let toml_str = &include_str!("../assets/ipify-config.toml");
+        let config: DnsConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(
+            config,
+            DnsConfig {
+                ip_resolver: String::from("ipify"),
+                log: LogConfig {
+                    level: LevelFilter::Info,
+                },
+                domains: vec![]
             }
         );
     }

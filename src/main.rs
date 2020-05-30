@@ -9,6 +9,7 @@ mod namecheap;
 use crate::config::{parse_config, DnsConfig, DomainConfig};
 use crate::core::Updates;
 use crate::dns::wan_lookup_ip;
+use crate::errors::DnessError;
 use chrono::Duration;
 use log::{error, info, LevelFilter};
 use std::error;
@@ -66,9 +67,37 @@ fn init_configuration(file: &Option<String>) -> DnsConfig {
     }
 }
 
+async fn ipify_resolve_ip(client: &reqwest::Client) -> Result<Ipv4Addr, DnessError> {
+    let ipify_url = "https://api.ipify.org/";
+    let ip_text = client
+        .get(ipify_url)
+        .send()
+        .await
+        .map_err(|e| DnessError::send_http(ipify_url, "ipify get ip", e))?
+        .error_for_status()
+        .map_err(|e| DnessError::bad_response(ipify_url, "ipify get ip", e))?
+        .text()
+        .await
+        .map_err(|e| DnessError::deserialize(ipify_url, "ipify get ip", e))?;
+
+    let ip = ip_text
+        .parse::<Ipv4Addr>()
+        .map_err(|_| DnessError::message(format!("unable to parse {} as an ip", &ip_text)))?;
+    Ok(ip)
+}
+
 /// Resolves the WAN IP or exits with a non-zero status code
-async fn resolve_ip() -> Ipv4Addr {
-    match wan_lookup_ip().await {
+async fn resolve_ip(client: &reqwest::Client, config: &DnsConfig) -> Ipv4Addr {
+    let res = match config.ip_resolver.to_ascii_lowercase().as_str() {
+        "opendns" => wan_lookup_ip().await.map_err(|x| x.into()),
+        "ipify" => ipify_resolve_ip(&client).await,
+        _ => {
+            error!("unrecognized ip resolver: {}", config.ip_resolver);
+            std::process::exit(1)
+        }
+    };
+
+    match res {
         Ok(c) => c,
         Err(e) => {
             log_err("could not successfully resolve IP", Box::new(e));
@@ -115,12 +144,12 @@ async fn main() {
 
     init_logging(config.log.level);
 
-    let start_resolve = Instant::now();
-    let addr = resolve_ip().await;
-    info!("resolved address to {} in {}", addr, elapsed(start_resolve));
-
     // Use a single HTTP client when updating dns records so that connections can be reused
     let http_client = reqwest::Client::new();
+
+    let start_resolve = Instant::now();
+    let addr = resolve_ip(&http_client, &config).await;
+    info!("resolved address to {} in {}", addr, elapsed(start_resolve));
 
     // Keep track of any failures in ensuring current DNS records. We don't want to fail on the
     // first error, as subsequent domains listed in the config can still be valid, but if there
