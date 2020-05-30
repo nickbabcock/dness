@@ -2,7 +2,7 @@ use crate::config::NamecheapConfig;
 use crate::core::Updates;
 use crate::dns::DnsResolver;
 use crate::errors::DnessError;
-use log::{warn, info};
+use log::{info, warn};
 use std::net::Ipv4Addr;
 
 #[derive(Debug)]
@@ -79,7 +79,10 @@ pub async fn update_domains(
                     results.current += 1;
                 } else {
                     namecheap.update_domain(record, wan).await?;
-                    info!("{} from domain {} updated from {} to {}", record, config.domain, ip, wan);
+                    info!(
+                        "{} from domain {} updated from {} to {}",
+                        record, config.domain, ip, wan
+                    );
                     results.updated += 1;
                 }
             }
