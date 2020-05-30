@@ -220,8 +220,22 @@ This method suffers from natural flow of dns propagation. When namecheap receive
 
 ### Supported WAN IP Resolvers
 
-No other WAN IP resolvers are available, but it certainly possible to add other DNS or HTTP resolvers in the future.
+There are a couple different methods for dness to resolve the WAN IP address.
 
 #### OpenDNS
 
-No configuration option are available for OpenDNS. It resolves IPv4 addresses by querying "myip.opendns.com" against resolver1.opendns.com and resolver2.opendns.com.
+The default WAN IP address resolver queries OpenDNS. It resolves IPv4 addresses by querying "myip.opendns.com" against resolver1.opendns.com and resolver2.opendns.com.
+
+While it is the default, it can explicitly be specified by appending snippet below to the top of the config:
+
+```toml
+ip_resolver = "opendns"
+```
+
+#### Ipify
+
+OpenDNS may not be available to all networks, so one can configure dness to use [Ipify](https://www.ipify.org/). Instead of using DNS, an HTTPs request will be sent. To opt into using Ipify, append the snippet below to the top of the config:
+
+```toml
+ip_resolver = "ipify"
+```

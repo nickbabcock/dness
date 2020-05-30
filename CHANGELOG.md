@@ -1,3 +1,8 @@
+## 0.3.0 - 2020-05-30
+
+- Add alternative WAN IP resolvers. Previously OpenDNS was used exclusively, but there exist networks where OpenDNS is not accessible. Now dness can issue HTTP requests instead of DNS to determine the WAN IP. See the readme for how to configure.
+- The default deb packages now leverage an OpenSSL that has been statically compiled into the executable. While I believe that the ideal solution would be to distribute a pure dynamically linked application (libc + ssl) and a statically linked one, changes in creating a dynamically linked openssl application has made this ideal a bit more difficult to accomplish. Since my preference is statically linked executable anyways, I was ok with making the default deb package dynamically link libc but statically link openssl. If this is an issue, open an issue so that this can be investigated further.
+
 ## 0.2.1 - 2020-01-14
 
 - Fixed an issue with the static builds not being deployed to github issues. No code changes.
