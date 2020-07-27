@@ -119,14 +119,14 @@ fn apply_auth_to_request(
     request_builder: reqwest::RequestBuilder,
     email: String,
     key: String,
-    token: String
+    token: String,
 ) -> reqwest::RequestBuilder {
     if !token.is_empty() {
-        return request_builder.bearer_auth(&token.clone());
+        request_builder.bearer_auth(token)
     } else {
-        return request_builder
-            .header("X-Auth-Email", email.clone())
-            .header("X-Auth-Key", key.clone());
+        request_builder
+            .header("X-Auth-Email", email)
+            .header("X-Auth-Key", key)
     }
 }
 
