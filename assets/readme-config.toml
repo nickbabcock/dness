@@ -6,12 +6,20 @@ level = "Debug"
 # We denote that our domain is managed by cloudflare
 type = "cloudflare"
 
+# Generate a cloudflare token with suitable access to the zone in your profile.
+# https://dash.cloudflare.com/profile/api-tokens
+# Required if "email" and "key" are not defined
+# !!! Using a token is more secure than using an email and key !!!
+token = "deadbeef"
+
 # The email address registered in cloudflare that is authorized to update dns
 # records
+# Required if "token" is not defined
 email = "admin@example.com"
 
 # The cloudflare key can be found in the domain overview, in "Get your API key"
 # and view "Global API Key" (or another key as appropriate)
+# Required if "token" is not defined
 key = "deadbeef"
 
 # The zone is the domain name
@@ -27,6 +35,7 @@ records = [
 type = "cloudflare"
 email = "admin@example.com"
 key = "deadbeef"
+token = "deadbeef"
 zone = "example2.com"
 records = [
     "n.example2.com",

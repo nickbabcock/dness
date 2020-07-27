@@ -285,7 +285,7 @@ dependencies = [
 
 [[package]]
 name = "dness"
-version = "0.3.1-pre"
+version = "0.4.0-pre"
 dependencies = [
  "assert_cmd 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)",

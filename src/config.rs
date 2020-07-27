@@ -110,6 +110,7 @@ impl DomainConfig {
 pub struct CloudflareConfig {
     pub email: String,
     pub key: String,
+    pub token: String,
     pub zone: String,
     pub records: Vec<String>,
 }
@@ -198,6 +199,7 @@ mod tests {
                 domains: vec![DomainConfig::Cloudflare(CloudflareConfig {
                     email: String::from("a@b.com"),
                     key: String::from("deadbeef"),
+                    token: String::from("deadbeef"),
                     zone: String::from("example.com"),
                     records: vec![String::from("n.example.com")]
                 })]
@@ -251,12 +253,14 @@ mod tests {
                     DomainConfig::Cloudflare(CloudflareConfig {
                         email: String::from("admin@example.com"),
                         key: String::from("deadbeef"),
+                        token: String::from("deadbeef"),
                         zone: String::from("example.com"),
                         records: vec![String::from("n.example.com")]
                     }),
                     DomainConfig::Cloudflare(CloudflareConfig {
                         email: String::from("admin@example.com"),
                         key: String::from("deadbeef"),
+                        token: String::from("deadbeef"),
                         zone: String::from("example2.com"),
                         records: vec![
                             String::from("n.example2.com"),
