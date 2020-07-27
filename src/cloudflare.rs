@@ -29,9 +29,6 @@ struct CloudflareDnsRecord {
 
 #[derive(Serialize, PartialEq, Clone, Debug)]
 struct CloudflareDnsRecordUpdate {
-    #[serde(rename = "type")]
-    type_: &'static str,
-    name: String,
     content: String,
 }
 
@@ -297,14 +294,12 @@ impl<'a> CloudflareClient<'a> {
         );
 
         let update = CloudflareDnsRecordUpdate {
-            name: record.name.clone(),
-            type_: "A",
             content: addr.to_string(),
         };
 
         let response: CloudflareResponse<CloudflareDnsRecord> = self
             .client
-            .put(&url)
+            .patch(&url)
             .header("X-Auth-Email", self.email.clone())
             .header("X-Auth-Key", self.key.clone())
             .json(&update)
