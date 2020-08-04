@@ -77,7 +77,7 @@ impl From<DnsError> for DnessError {
 }
 
 impl error::Error for DnessError {
-    fn cause(&self) -> Option<&dyn error::Error> {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self.kind {
             DnessErrorKind::SendHttp { ref source, .. } => Some(source),
             DnessErrorKind::BadResponse { ref source, .. } => Some(source),
@@ -125,7 +125,7 @@ pub enum DnsErrorKind {
 }
 
 impl error::Error for DnsError {
-    fn cause(&self) -> Option<&dyn error::Error> {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self.kind {
             DnsErrorKind::DnsCreation(ref e) => Some(e),
             DnsErrorKind::DnsResolve(ref e) => Some(e),

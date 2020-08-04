@@ -83,7 +83,7 @@ pub enum ClErrorKind {
 }
 
 impl error::Error for ClError {
-    fn cause(&self) -> Option<&dyn error::Error> {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self.kind {
             ClErrorKind::SendHttp(_, ref e) => Some(e),
             ClErrorKind::DecodeHttp(_, ref e) => Some(e),

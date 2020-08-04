@@ -20,7 +20,7 @@ pub enum ConfigErrorKind {
 }
 
 impl error::Error for ConfigError {
-    fn cause(&self) -> Option<&dyn error::Error> {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self.kind {
             ConfigErrorKind::FileNotFound(ref e) => Some(e),
             ConfigErrorKind::Misread(ref e) => Some(e),
