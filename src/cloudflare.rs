@@ -293,6 +293,11 @@ impl<'a> CloudflareClient<'a> {
             self.zone_id, record.id
         );
 
+        debug!(
+            "{} from zone {} updating from {} to {}: {}",
+            record.name, self.zone_name, record.content, addr, &url
+        );
+
         let update = CloudflareDnsRecordUpdate {
             content: addr.to_string(),
         };
