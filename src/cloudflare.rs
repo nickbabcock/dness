@@ -139,10 +139,16 @@ impl<'a> CloudflareClient<'a> {
         let mut request_builder: reqwest::RequestBuilder = client
             .get("https://api.cloudflare.com/client/v4/zones")
             .query(&[("name", &config.zone)]);
-            
-        request_builder = apply_auth_to_request(request_builder, config.email.clone(), config.key.clone(), config.token.clone());
-        
-        let response: CloudflareResponse<Vec<CloudflareZone>> = request_builder.send()
+
+        request_builder = apply_auth_to_request(
+            request_builder,
+            config.email.clone(),
+            config.key.clone(),
+            config.token.clone(),
+        );
+
+        let response: CloudflareResponse<Vec<CloudflareZone>> = request_builder
+            .send()
             .await
             .map_err(|e| ClError {
                 kind: ClErrorKind::SendHttp("get zones", e),
@@ -203,10 +209,15 @@ impl<'a> CloudflareClient<'a> {
                 .get(&record_url)
                 .query(&[("page", page)])
                 .query(&[("type", "A")]);
-            
-                request_builder = apply_auth_to_request(request_builder, self.email.clone(), self.key.clone(), self.token.clone());
-                
-                let response: CloudflareResponse<Vec<CloudflareDnsRecord>> = request_builder
+
+            request_builder = apply_auth_to_request(
+                request_builder,
+                self.email.clone(),
+                self.key.clone(),
+                self.token.clone(),
+            );
+
+            let response: CloudflareResponse<Vec<CloudflareDnsRecord>> = request_builder
                 .send()
                 .await
                 .map_err(|e| ClError {
@@ -317,13 +328,16 @@ impl<'a> CloudflareClient<'a> {
             content: addr.to_string(),
         };
 
-        let mut request_builder: reqwest::RequestBuilder = self
-            .client
-            .patch(&url);
+        let mut request_builder: reqwest::RequestBuilder = self.client.patch(&url);
 
-            request_builder = apply_auth_to_request(request_builder, self.email.clone(), self.key.clone(), self.token.clone());
-                
-            let response: CloudflareResponse<CloudflareDnsRecord> = request_builder
+        request_builder = apply_auth_to_request(
+            request_builder,
+            self.email.clone(),
+            self.key.clone(),
+            self.token.clone(),
+        );
+
+        let response: CloudflareResponse<CloudflareDnsRecord> = request_builder
             .json(&update)
             .send()
             .await
