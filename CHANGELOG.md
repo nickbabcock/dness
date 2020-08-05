@@ -1,3 +1,9 @@
+## 0.3.1 - 2020-08-04
+
+- Fixed cloudflare DNS updates resetting entries to their default values (eg: if a record was marked as proxied, the broken behavior would set it to unproxied).
+- Fixed root error not being printed
+- Add minor debug logging before cloudflare DNS update is successful
+
 ## 0.3.0 - 2020-05-30
 
 - Add alternative WAN IP resolvers. Previously OpenDNS was used exclusively, but there exist networks where OpenDNS is not accessible. Now dness can issue HTTP requests instead of DNS to determine the WAN IP. See the readme for how to configure.
