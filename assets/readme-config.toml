@@ -1,26 +1,24 @@
 [log]
-# How verbose the log is. Commons values are Error, Warn, Info, Debug, Trace
+# How verbose the log is. Common values: Error, Warn, Info, Debug, Trace
+# The default level is info
 level = "Debug"
 
 [[domains]]
 # We denote that our domain is managed by cloudflare
 type = "cloudflare"
 
-# Generate a cloudflare token with suitable access to the zone in your profile.
-# https://dash.cloudflare.com/profile/api-tokens
-# Required if "email" and "key" are not defined
-# !!! Using a token is more secure than using an email and key !!!
-token = "deadbeef"
+# Create Cloudflare token by using the use "Edit zone DNS" API token template.
+# Alternatively one can use email + key fields but the token is recommended as
+# it is more secure
+token = "dec0de"
 
 # The email address registered in cloudflare that is authorized to update dns
-# records
-# Required if "token" is not defined
-email = "admin@example.com"
+# records. Only required when not using the token field
+# email = "admin@example.com"
 
 # The cloudflare key can be found in the domain overview, in "Get your API key"
-# and view "Global API Key" (or another key as appropriate)
-# Required if "token" is not defined
-key = "deadbeef"
+# and view "Global API Key". Required when "email" is used
+# key = "deadbeef"
 
 # The zone is the domain name
 zone = "example.com"
@@ -35,7 +33,6 @@ records = [
 type = "cloudflare"
 email = "admin@example.com"
 key = "deadbeef"
-token = "deadbeef"
 zone = "example2.com"
 records = [
     "n.example2.com",

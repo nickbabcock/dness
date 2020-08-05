@@ -1,8 +1,6 @@
 [[domains]]
 type = "cloudflare"
-email = "a@b.com"
-key = "deadbeef"
-token = "deadbeef"
+token = "dec0de"
 zone = "example.com"
 records = [
     "n.example.com"

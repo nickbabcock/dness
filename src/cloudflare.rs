@@ -7,6 +7,35 @@ use std::error;
 use std::fmt;
 use std::net::Ipv4Addr;
 
+trait CloudflareAuthorizer: fmt::Debug {
+    fn with_auth(&self, request_builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder;
+}
+
+#[derive(Debug)]
+struct BearerAuthorizer {
+    token: String,
+}
+
+impl CloudflareAuthorizer for BearerAuthorizer {
+    fn with_auth(&self, request_builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
+        request_builder.bearer_auth(&self.token)
+    }
+}
+
+#[derive(Debug)]
+struct EmailKeyAuthorizer {
+    email: String,
+    key: String,
+}
+
+impl CloudflareAuthorizer for EmailKeyAuthorizer {
+    fn with_auth(&self, request_builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
+        request_builder
+            .header("X-Auth-Email", &self.email)
+            .header("X-Auth-Key", &self.key)
+    }
+}
+
 #[derive(Serialize, PartialEq, Clone, Debug)]
 struct CloudflareUpdate<'a> {
     type_: &'static str,
@@ -55,14 +84,12 @@ struct CloudflareResultInfo {
     total_count: i32,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 struct CloudflareClient<'a> {
-    email: String,
-    key: String,
-    token: String,
     zone_name: String,
     zone_id: String,
     records: HashSet<String>,
+    authorizer: Box<dyn CloudflareAuthorizer>,
     client: &'a reqwest::Client,
 }
 
@@ -115,18 +142,47 @@ impl fmt::Display for ClError {
     }
 }
 
-fn apply_auth_to_request(
-    request_builder: reqwest::RequestBuilder,
-    email: String,
-    key: String,
-    token: String,
-) -> reqwest::RequestBuilder {
-    if !token.is_empty() {
-        request_builder.bearer_auth(token)
+fn empty_to_none<P: AsRef<str>>(s: P) -> Option<P> {
+    if s.as_ref().is_empty() {
+        None
     } else {
-        request_builder
-            .header("X-Auth-Email", email)
-            .header("X-Auth-Key", key)
+        Some(s)
+    }
+}
+
+fn create_authorizer(config: &CloudflareConfig) -> Box<dyn CloudflareAuthorizer> {
+    let token = config.token.as_ref().and_then(empty_to_none);
+    let email = config.email.as_ref().and_then(empty_to_none);
+    let key = config.key.as_ref().and_then(empty_to_none);
+
+    // One can create a cloudflare with either a token or email + key. We prefer the token approach
+    // as that is considered more secure
+    if let Some(token) = token {
+        if email.is_some() || key.is_some() {
+            log::warn!(
+                "ignoring email and key fields as token is already given for zone: {}",
+                &config.zone
+            );
+        }
+
+        Box::new(BearerAuthorizer {
+            token: token.to_string(),
+        })
+    } else if let Some((email, key)) = email.and_then(|x| key.map(|y| (x, y))) {
+        Box::new(EmailKeyAuthorizer {
+            email: email.to_string(),
+            key: key.to_string(),
+        })
+    } else {
+        // If neither are provided, log an error and create a dummy authorizer
+        log::error!(
+            "missing either token or email + key in cloudflare config for zone: {}",
+            &config.zone
+        );
+
+        Box::new(BearerAuthorizer {
+            token: "".to_string(),
+        })
     }
 }
 
@@ -135,17 +191,14 @@ impl<'a> CloudflareClient<'a> {
         client: &'b reqwest::Client,
         config: &CloudflareConfig,
     ) -> Result<CloudflareClient<'b>, ClError> {
+        let authorizer = create_authorizer(config);
+
         // Need to translate our zone name into an id
         let mut request_builder: reqwest::RequestBuilder = client
             .get("https://api.cloudflare.com/client/v4/zones")
             .query(&[("name", &config.zone)]);
 
-        request_builder = apply_auth_to_request(
-            request_builder,
-            config.email.clone(),
-            config.key.clone(),
-            config.token.clone(),
-        );
+        request_builder = authorizer.with_auth(request_builder);
 
         let response: CloudflareResponse<Vec<CloudflareZone>> = request_builder
             .send()
@@ -173,13 +226,11 @@ impl<'a> CloudflareClient<'a> {
             let zone_id = zone[0].id.clone();
 
             Ok(CloudflareClient {
-                email: config.email.clone(),
-                key: config.key.clone(),
-                token: config.token.clone(),
                 zone_name: config.zone.clone(),
                 zone_id,
                 records: config.records.iter().cloned().collect(),
                 client,
+                authorizer,
             })
         } else {
             Err(ClError {
@@ -210,12 +261,7 @@ impl<'a> CloudflareClient<'a> {
                 .query(&[("page", page)])
                 .query(&[("type", "A")]);
 
-            request_builder = apply_auth_to_request(
-                request_builder,
-                self.email.clone(),
-                self.key.clone(),
-                self.token.clone(),
-            );
+            request_builder = self.authorizer.with_auth(request_builder);
 
             let response: CloudflareResponse<Vec<CloudflareDnsRecord>> = request_builder
                 .send()
@@ -334,13 +380,7 @@ impl<'a> CloudflareClient<'a> {
         };
 
         let mut request_builder: reqwest::RequestBuilder = self.client.patch(&url);
-
-        request_builder = apply_auth_to_request(
-            request_builder,
-            self.email.clone(),
-            self.key.clone(),
-            self.token.clone(),
-        );
+        request_builder = self.authorizer.with_auth(request_builder);
 
         let response: CloudflareResponse<CloudflareDnsRecord> = request_builder
             .json(&update)
