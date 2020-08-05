@@ -1,3 +1,7 @@
+## 0.3.2 - 2020-08-04
+
+- Fixed build system used to generate binaries
+
 ## 0.3.1 - 2020-08-04
 
 - Fixed cloudflare DNS updates resetting entries to their default values (eg: if a record was marked as proxied, the broken behavior would set it to unproxied).
