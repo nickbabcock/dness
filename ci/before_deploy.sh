@@ -32,7 +32,7 @@ main() {
         CARGO_FLAGS="$CARGO_FLAGS --features vendored-openssl"
     fi
 
-    $CARGO_CMD rustc $CARGO_FLAGS --bin dness --release -- -C lto
+    $CARGO_CMD build $CARGO_FLAGS --bin dness --release
 
     if [ -n "$DEBIAN_PACKAGING" ]; then
         cargo install cargo-deb
