@@ -2,6 +2,7 @@
 type = "cloudflare"
 email = "a@b.com"
 key = "deadbeef"
+token = "deadbeef"
 zone = "example.com"
 records = [
     "n.example.com"

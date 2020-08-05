@@ -59,6 +59,7 @@ struct CloudflareResultInfo {
 struct CloudflareClient<'a> {
     email: String,
     key: String,
+    token: String,
     zone_name: String,
     zone_id: String,
     records: HashSet<String>,
@@ -114,17 +115,39 @@ impl fmt::Display for ClError {
     }
 }
 
+fn apply_auth_to_request(
+    request_builder: reqwest::RequestBuilder,
+    email: String,
+    key: String,
+    token: String,
+) -> reqwest::RequestBuilder {
+    if !token.is_empty() {
+        request_builder.bearer_auth(token)
+    } else {
+        request_builder
+            .header("X-Auth-Email", email)
+            .header("X-Auth-Key", key)
+    }
+}
+
 impl<'a> CloudflareClient<'a> {
     async fn create<'b>(
         client: &'b reqwest::Client,
         config: &CloudflareConfig,
     ) -> Result<CloudflareClient<'b>, ClError> {
         // Need to translate our zone name into an id
-        let response: CloudflareResponse<Vec<CloudflareZone>> = client
+        let mut request_builder: reqwest::RequestBuilder = client
             .get("https://api.cloudflare.com/client/v4/zones")
-            .query(&[("name", &config.zone)])
-            .header("X-Auth-Email", config.email.clone())
-            .header("X-Auth-Key", config.key.clone())
+            .query(&[("name", &config.zone)]);
+
+        request_builder = apply_auth_to_request(
+            request_builder,
+            config.email.clone(),
+            config.key.clone(),
+            config.token.clone(),
+        );
+
+        let response: CloudflareResponse<Vec<CloudflareZone>> = request_builder
             .send()
             .await
             .map_err(|e| ClError {
@@ -152,6 +175,7 @@ impl<'a> CloudflareClient<'a> {
             Ok(CloudflareClient {
                 email: config.email.clone(),
                 key: config.key.clone(),
+                token: config.token.clone(),
                 zone_name: config.zone.clone(),
                 zone_id,
                 records: config.records.iter().cloned().collect(),
@@ -180,13 +204,20 @@ impl<'a> CloudflareClient<'a> {
             page += 1;
 
             debug!("grabbing page {} from {}", page, record_url);
-            let response: CloudflareResponse<Vec<CloudflareDnsRecord>> = self
+            let mut request_builder: reqwest::RequestBuilder = self
                 .client
                 .get(&record_url)
                 .query(&[("page", page)])
-                .query(&[("type", "A")])
-                .header("X-Auth-Email", self.email.clone())
-                .header("X-Auth-Key", self.key.clone())
+                .query(&[("type", "A")]);
+
+            request_builder = apply_auth_to_request(
+                request_builder,
+                self.email.clone(),
+                self.key.clone(),
+                self.token.clone(),
+            );
+
+            let response: CloudflareResponse<Vec<CloudflareDnsRecord>> = request_builder
                 .send()
                 .await
                 .map_err(|e| ClError {
@@ -302,11 +333,16 @@ impl<'a> CloudflareClient<'a> {
             content: addr.to_string(),
         };
 
-        let response: CloudflareResponse<CloudflareDnsRecord> = self
-            .client
-            .patch(&url)
-            .header("X-Auth-Email", self.email.clone())
-            .header("X-Auth-Key", self.key.clone())
+        let mut request_builder: reqwest::RequestBuilder = self.client.patch(&url);
+
+        request_builder = apply_auth_to_request(
+            request_builder,
+            self.email.clone(),
+            self.key.clone(),
+            self.token.clone(),
+        );
+
+        let response: CloudflareResponse<CloudflareDnsRecord> = request_builder
             .json(&update)
             .send()
             .await
