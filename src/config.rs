@@ -108,9 +108,9 @@ impl DomainConfig {
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct CloudflareConfig {
-    pub email: String,
-    pub key: String,
-    pub token: String,
+    pub email: Option<String>,
+    pub key: Option<String>,
+    pub token: Option<String>,
     pub zone: String,
     pub records: Vec<String>,
 }
@@ -197,9 +197,9 @@ mod tests {
                     level: LevelFilter::Info,
                 },
                 domains: vec![DomainConfig::Cloudflare(CloudflareConfig {
-                    email: String::from("a@b.com"),
-                    key: String::from("deadbeef"),
-                    token: String::from("deadbeef"),
+                    email: None,
+                    key: None,
+                    token: Some(String::from("dec0de")),
                     zone: String::from("example.com"),
                     records: vec![String::from("n.example.com")]
                 })]
@@ -251,16 +251,16 @@ mod tests {
                 },
                 domains: vec![
                     DomainConfig::Cloudflare(CloudflareConfig {
-                        email: String::from("admin@example.com"),
-                        key: String::from("deadbeef"),
-                        token: String::from("deadbeef"),
+                        email: None,
+                        key: None,
+                        token: Some(String::from("dec0de")),
                         zone: String::from("example.com"),
                         records: vec![String::from("n.example.com")]
                     }),
                     DomainConfig::Cloudflare(CloudflareConfig {
-                        email: String::from("admin@example.com"),
-                        key: String::from("deadbeef"),
-                        token: String::from("deadbeef"),
+                        email: Some(String::from("admin@example.com")),
+                        key: Some(String::from("deadbeef")),
+                        token: None,
                         zone: String::from("example2.com"),
                         records: vec![
                             String::from("n.example2.com"),

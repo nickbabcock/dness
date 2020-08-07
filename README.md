@@ -82,27 +82,52 @@ Sample output:
 [INFO  dness] processed all: (updated: 0, already current: 0, missing: 0) in 29ms
 ```
 
-### Sample Configuration
+### Simple Configuration
 
-But dness can do more than resolve one's WAN IP. Below is a sample configuration (dness.conf) that should cover most needs:
+But dness can do more than resolve one's WAN IP. Below is a simple configuration file (conventionally named `dness.conf`) that will update cloudflare records.
+
+```toml
+[[domains]]
+type = "cloudflare"
+token = "dec0de"
+zone = "example.com"
+records = [
+    "n.example.com"
+]
+```
+
+Execute dness with the configuration:
+
+```
+./dness -c dness.conf
+```
+
+### Annotated Configuration
+
+Below are the configuration options, but they've been annotated with comments.
 
 ```toml
 [log]
 # How verbose the log is. Common values: Error, Warn, Info, Debug, Trace
 # The default level is info
-level = "Info"
+level = "Debug"
 
 [[domains]]
 # We denote that our domain is managed by cloudflare
 type = "cloudflare"
 
+# Create Cloudflare token by using the use "Edit zone DNS" API token template.
+# Alternatively one can use email + key fields but the token is recommended as
+# it is more secure
+token = "dec0de"
+
 # The email address registered in cloudflare that is authorized to update dns
-# records
-email = "admin@example.com"
+# records. Only required when not using the token field
+# email = "admin@example.com"
 
 # The cloudflare key can be found in the domain overview, in "Get your API key"
-# and view "Global API Key" (or another key as appropriate)
-key = "deadbeef"
+# and view "Global API Key". Required when "email" is used
+# key = "deadbeef"
 
 # The zone is the domain name
 zone = "example.com"
@@ -122,12 +147,6 @@ records = [
     "n.example2.com",
     "n2.example2.com"
 ]
-```
-
-Execute with configuration:
-
-```
-./dness -c dness.conf
 ```
 
 ### Supported Dynamic DNS Services
