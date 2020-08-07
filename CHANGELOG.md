@@ -1,3 +1,36 @@
+## 0.4.0 - 2020-08-07
+
+Add new `token` field to Cloudflare configs representing a Cloudflare API token. Using an API token is preferred to specifying email + key as a token can be tailored to the desired permissions. When creating a new token, the "Edit zone DNS" API token template in Cloudflare can be selected to simplify token setup.
+
+To migrate take an old Cloudflare config:
+
+```toml
+[[domains]]
+type = "cloudflare"
+email = "admin@example.com"
+key = "deadbeef"
+zone = "example.com"
+records = [
+    "n.example.com"
+]
+```
+
+And remove the `email` and `key` fields and replace with the appropriately permissioned `token`:
+
+```toml
+[[domains]]
+type = "cloudflare"
+token = "dec0de"
+zone = "example.com"
+records = [
+    "n.example.com"
+]
+```
+
+Email + key is will still be supported, but using the `token` field is now preferred.
+
+Big thanks to *@luckyrat* who spearheaded this effort.
+
 ## 0.3.2 - 2020-08-04
 
 - Fixed build system used to generate binaries
