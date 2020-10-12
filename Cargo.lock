@@ -306,7 +306,7 @@ dependencies = [
  "serde_json 1.0.58 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio 0.2.22 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.5.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "trust-dns-resolver 0.19.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -1772,7 +1772,7 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.5.6"
+version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "serde 1.0.116 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2359,7 +2359,7 @@ dependencies = [
 "checksum tokio-rustls 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)" = "228139ddd4fea3fa345a29233009635235833e52807af7ea6448ead03890d6a9"
 "checksum tokio-tls 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "9a70f4fcd7b3b24fb194f837560168208f669ca8cb70d0c4b862944452396343"
 "checksum tokio-util 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "be8242891f2b6cbef26a2d7e8605133c2c554cd35b3e4948ea892d6d68436499"
-"checksum toml 0.5.6 (registry+https://github.com/rust-lang/crates.io-index)" = "ffc92d160b1eef40665be3a05630d003936a3bc7da7421277846c2613e92c71a"
+"checksum toml 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)" = "75cf45bb0bef80604d001caaec0d09da99611b3c0fd39d3080468875cdb65645"
 "checksum tower-service 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e987b6bf443f4b5b3b6f38704195592cca41c5bb7aedd3c3693c7081f8289860"
 "checksum tracing 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)" = "f0aae59226cf195d8e74d4b34beae1859257efb4e5fed3f147d2dc2c7d372178"
 "checksum tracing-core 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)" = "b2734b5a028fa697686f16c6d18c2c6a3c7e41513f9a213abb6754c4acb3c8d7"
