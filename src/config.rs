@@ -1,11 +1,12 @@
+use handlebars::{Handlebars, RenderError, TemplateError};
 use log::LevelFilter;
 use serde::Deserialize;
-use std::error;
 use std::fmt;
 use std::fs::File;
 use std::io::Error as IoError;
 use std::io::Read;
 use std::path::Path;
+use std::{collections::HashMap, error};
 
 #[derive(Debug)]
 pub struct ConfigError {
@@ -17,6 +18,8 @@ pub enum ConfigErrorKind {
     FileNotFound(IoError),
     Misread(IoError),
     Parse(toml::de::Error),
+    Template(TemplateError),
+    Render(RenderError),
 }
 
 impl error::Error for ConfigError {
@@ -25,6 +28,8 @@ impl error::Error for ConfigError {
             ConfigErrorKind::FileNotFound(ref e) => Some(e),
             ConfigErrorKind::Misread(ref e) => Some(e),
             ConfigErrorKind::Parse(ref e) => Some(e),
+            ConfigErrorKind::Template(ref e) => Some(e),
+            ConfigErrorKind::Render(ref e) => Some(e),
         }
     }
 }
@@ -36,6 +41,8 @@ impl fmt::Display for ConfigError {
             ConfigErrorKind::FileNotFound(ref _e) => write!(f, "file not found"),
             ConfigErrorKind::Misread(ref _e) => write!(f, "unable to read file"),
             ConfigErrorKind::Parse(ref _e) => write!(f, "a parsing error"),
+            ConfigErrorKind::Template(ref _e) => write!(f, "config template error"),
+            ConfigErrorKind::Render(ref _e) => write!(f, "config template rendering error"),
         }
     }
 }
@@ -154,7 +161,22 @@ pub fn parse_config<P: AsRef<Path>>(path: P) -> Result<DnsConfig, ConfigError> {
         kind: ConfigErrorKind::Misread(e),
     })?;
 
-    toml::from_str(&contents).map_err(|e| ConfigError {
+    let mut handlebars = Handlebars::new();
+
+    handlebars
+        .register_template_string("dness_config", contents)
+        .map_err(|e| ConfigError {
+            kind: ConfigErrorKind::Template(e),
+        })?;
+    handlebars.register_escape_fn(handlebars::no_escape);
+    handlebars.set_strict_mode(true);
+
+    let data: HashMap<_, _> = std::env::vars().collect();
+    let config_contents = handlebars.render("dness_config", &data).map_err(|e| ConfigError {
+        kind: ConfigErrorKind::Render(e),
+    })?;
+
+    toml::from_str(&config_contents).map_err(|e| ConfigError {
         kind: ConfigErrorKind::Parse(e),
     })
 }
@@ -240,8 +262,8 @@ mod tests {
 
     #[test]
     fn deserialize_config_readme() {
-        let toml_str = &include_str!("../assets/readme-config.toml");
-        let config: DnsConfig = toml::from_str(toml_str).unwrap();
+        std::env::set_var("MY_CLOUDFLARE_TOKEN", "dec0de");
+        let config = parse_config("assets/readme-config.toml").unwrap();
         assert_eq!(
             config,
             DnsConfig {
@@ -270,6 +292,13 @@ mod tests {
                 ]
             }
         );
+    }
+
+    #[test]
+    fn deserialize_config_readme_bad() {
+        let err = parse_config("assets/readme-config-bad.toml").unwrap_err();
+        let msg = format!("{:?}", err);
+        assert!(msg.contains("I_DO_NOT_EXIST"));
     }
 
     #[test]

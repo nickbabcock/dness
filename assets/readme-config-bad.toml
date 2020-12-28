@@ -11,7 +11,7 @@ type = "cloudflare"
 # Alternatively one can use email + key fields but the token is recommended as
 # it is more secure. This also shows an example of substituting an environment
 # variable
-token = "{{MY_CLOUDFLARE_TOKEN}}"
+token = "{{I_DO_NOT_EXIST}}"
 
 # The email address registered in cloudflare that is authorized to update dns
 # records. Only required when not using the token field
