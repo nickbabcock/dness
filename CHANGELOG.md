@@ -1,3 +1,38 @@
+## 0.5.0 - 2020-12-29
+
+This release is for the sysadmins out there. The dness config file is now treated as a handlebar template with variables filled in from the environment. Now one can write
+
+```toml
+[[domains]]
+type = "cloudflare"
+token = "{{MY_CLOUDFLARE_TOKEN}}"
+zone = "example.com"
+records = [
+    "n.example.com"
+]
+````
+
+And if `MY_CLOUDFLARE_TOKEN` is in the environment then dness can be executed as an unprivileged, dynamic user. This mainly affects systemd users who will now want to extract sensitive info into:
+
+```
+/etc/dness/dness.env
+```
+
+and format it like so:
+
+```
+MY_CLOUDFLARE_TOKEN=dec0de
+```
+
+Also for systemd users, the provided service file now sandboxes dness properly.
+
+This release also consolidates the x86 linux builds to only builds that are built with musl with openssl statically compiled. This should be a minor annoyance. Those that want everything dynamically linked are encouraged to build from source, and users of the musl deb variant (myself included) will need to migrate to the new deb with:
+
+```
+dpkg --remove dness-musl
+dpkg --install dness_0.5.0_amd64.deb
+```
+
 ## 0.4.0 - 2020-08-07
 
 Add new `token` field to Cloudflare configs representing a Cloudflare API token. Using an API token is preferred to specifying email + key as a token can be tailored to the desired permissions. When creating a new token, the "Edit zone DNS" API token template in Cloudflare can be selected to simplify token setup.
