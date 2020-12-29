@@ -1,7 +1,7 @@
 name: ci
 on:
   pull_request:
-  push:
+  push: ['master']
   schedule:
   - cron: '00 01 * * *'
 

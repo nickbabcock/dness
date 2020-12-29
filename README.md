@@ -2,7 +2,7 @@
 
 ***Finesse with dness: a dynamic dns client***
 
-[![Build Status](https://travis-ci.org/nickbabcock/dness.svg?branch=master)](https://travis-ci.org/nickbabcock/dness) [![Build status](https://ci.appveyor.com/api/projects/status/dic59x43w2g19536?svg=true)](https://ci.appveyor.com/project/nickbabcock/dness)
+![ci](https://github.com/nickbabcock/dness/workflows/ci/badge.svg)
 
 ---
 
