@@ -60,9 +60,3 @@ assets = [
     ["assets/dness.timer", "etc/systemd/system/dness.timer", "644"]
 ]
 conf-files = ["etc/dness/dness.conf", "etc/dness/dness.env"]
-
-[package.metadata.deb.variants.musl]
-depends = ""
-features = ["rustls"]
-default-features = false
-conflicts = "dness"
