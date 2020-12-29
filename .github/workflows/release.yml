@@ -98,7 +98,7 @@ jobs:
       run: |
         cargo install cargo-deb
         ${{ env.CARGO }} build $FEATURES --all --release --target ${{ matrix.target }}
-        cargo deb --no-build $TARGET
+        cargo deb --no-build --target ${{ matrix.target }}
     - name: Stage Release
       shell: bash
       run: |
