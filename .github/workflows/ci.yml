@@ -1,0 +1,83 @@
+name: ci
+on:
+  pull_request:
+  push:
+  schedule:
+  - cron: '00 01 * * *'
+
+jobs:
+  test:
+    name: test
+    env:
+      CARGO: cargo
+      TARGET:
+      FEATURES:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+        - aarch64
+        - arm
+        - armv7
+        - mips
+        - 32bit
+        - linux
+        - macos
+        - win-msvc
+        include:
+        - build: aarch64
+          os: ubuntu-latest
+          target: aarch64-unknown-linux-gnu
+          run_test: 'false'
+        - build: arm
+          os: ubuntu-latest
+          run_test: 'false'
+          target: arm-unknown-linux-gnueabi
+        - build: armv7
+          os: ubuntu-latest
+          run_test: 'false'
+          target: armv7-unknown-linux-gnueabihf
+        - build: mips
+          os: ubuntu-latest
+          run_test: 'false'
+          target: mips-unknown-linux-gnu
+        - build: 32bit
+          os: ubuntu-latest
+          target: i686-unknown-linux-gnu
+        - build: linux  
+          os: ubuntu-latest
+          target: x86_64-unknown-linux-musl
+        - build: macos
+          os: macos-latest
+          target: x86_64-apple-darwin
+        - build: win-msvc
+          os: windows-latest
+          target: x86_64-pc-windows-msvc
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+
+    - name: Use Cross
+      if: matrix.build != 'macos' && matrix.build != 'win-msvc'
+      run: |
+        cargo install cross
+        echo "CARGO=cross" >> $GITHUB_ENV
+        echo "TARGET=--target ${{ matrix.target }}" >> $GITHUB_ENV
+        echo "FEATURES=--features vendored-openssl" >> $GITHUB_ENV
+
+    - name: Build
+      run: ${{ env.CARGO }} build $FEATURES --verbose $TARGET
+
+    - name: Tests
+      if: matrix.run_test != 'false'
+      run: ${{ env.CARGO }} test $FEATURES --verbose $TARGET
+
+    - name: Build deb
+      if: matrix.build == 'linux'
+      run: |
+        cargo install cargo-deb
+        ${{ env.CARGO }} build $FEATURES --all --release $TARGET
+        cargo deb --variant musl --no-build $TARGET
