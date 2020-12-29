@@ -113,7 +113,9 @@ jobs:
           echo "ASSET=$STAGING.zip" >> $GITHUB_ENV
         elif [[ "${{ matrix.build }}" = linux-musl-deb ]]; then
           cp target/${{ matrix.target }}/debian/*.deb .
-          echo ASSET=*.deb >> $GITHUB_ENV
+          T=*.deb
+          ASSET=$(echo $T)
+          echo ASSET=$ASSET >> $GITHUB_ENV
         else
           cp "target/${{ matrix.target }}/release/dness" "$STAGING/"
           tar czf "$STAGING.tar.gz" "$STAGING"
