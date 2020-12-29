@@ -5,4 +5,24 @@ After=network.target network-online.target
 
 [Service]
 Type=oneshot
+DynamicUser=yes
 ExecStart=/usr/bin/dness -c /etc/dness/dness.conf
+EnvironmentFile=-/etc/dness/dness.env
+
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6
+SystemCallArchitectures=native
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+PrivateDevices=yes
+PrivateUsers=yes
+ProtectControlGroups=yes
+ProtectHome=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallFilter=~@privileged @resources
+SystemCallFilter=@system-service
