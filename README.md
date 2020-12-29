@@ -29,8 +29,7 @@ To maximize initial flexibility, dness is not a daemon. Instead it relies on the
 
 ### Ubuntu / Debian (systemd + deb)
 
-- Decide if you want a static musl package or one that depends on the system's openssl.
-- Download the [latest chosen deb](https://github.com/nickbabcock/dness/releases/latest)
+- Download the [latest deb](https://github.com/nickbabcock/dness/releases/latest)
 
 ```bash
 dpkg -i dness<version>_amd64.deb
@@ -45,15 +44,11 @@ systemctl enable dness.timer
 
 # update configuration
 ${EDITOR:-vi} /etc/dness/dness.conf
+
+# create the environment variables with sensitive info
+(umask 077; touch /etc/dness/dness.env)
+${EDITOR:-vi} /etc/dness/dness.env
 ```
-
-### Linux Musl
-
-The linux musl build is a static build of dness. It has zero dependencies. Nothing is quite like scp'ing or curl'ing a musl binary to a random / unknown linux server and having it just work.
-
-- Download the [latest "-x86_64-unknown-linux-musl.tar.gz" ](https://github.com/nickbabcock/dness/releases/latest)
-- untar (`tar -xzf *-x86_64-unknown-linux-musl.tar.gz`)
-- enjoy
 
 ### Windows
 
@@ -101,6 +96,22 @@ Execute dness with the configuration:
 ```
 ./dness -c dness.conf
 ```
+
+### Substitute Sensitive Values
+
+Dness will substitute in values from the environment into the configuration so that sensitive values don't need to be specified in the config:
+
+```toml
+[[domains]]
+type = "cloudflare"
+token = "{{MY_CLOUDFLARE_TOKEN}}"
+zone = "example.com"
+records = [
+    "n.example.com"
+]
+```
+
+This is a great way to run dness in an unprivileged account but still have access to sensitive values.
 
 ### Annotated Configuration
 
