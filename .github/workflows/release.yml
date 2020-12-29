@@ -115,7 +115,6 @@ jobs:
           cp target/${{ matrix.target }}/debian/*.deb .
           echo ASSET=*.deb >> $GITHUB_ENV
         else
-          strip "target/${{ matrix.target }}/release/dness"
           cp "target/${{ matrix.target }}/release/dness" "$STAGING/"
           tar czf "$STAGING.tar.gz" "$STAGING"
           echo "ASSET=$STAGING.tar.gz" >> $GITHUB_ENV
