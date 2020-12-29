@@ -1,0 +1,132 @@
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  create-release:
+    name: create-release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create Release
+      id: release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+    - name: Save release upload URL to artifact
+      run: echo "${{ steps.release.outputs.upload_url }}" > release-upload-url
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: release-upload-url
+        path: release-upload-url
+
+  build:
+    name: Upload Release Asset
+    needs: ['create-release']
+    runs-on: ${{ matrix.os }}
+    env:
+      CARGO: cargo
+      TARGET:
+      FEATURES:
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+        - aarch64
+        - arm
+        - armv7
+        - mips
+        - 32bit
+        - linux-musl
+        - linux-musl-deb
+        - macos
+        - win-msvc
+        include:
+        - build: aarch64
+          os: ubuntu-latest
+          target: aarch64-unknown-linux-gnu
+        - build: arm
+          os: ubuntu-latest
+          target: arm-unknown-linux-gnueabi
+        - build: armv7
+          os: ubuntu-latest
+          target: armv7-unknown-linux-gnueabihf
+        - build: mips
+          os: ubuntu-latest
+          target: mips-unknown-linux-gnu
+        - build: 32bit
+          os: ubuntu-latest
+          target: i686-unknown-linux-gnu
+        - build: linux-musl  
+          os: ubuntu-latest
+          target: x86_64-unknown-linux-musl
+        - build: linux-musl-deb
+          os: ubuntu-latest
+          target: x86_64-unknown-linux-musl
+        - build: macos
+          os: macos-latest
+          target: x86_64-apple-darwin
+        - build: win-msvc
+          os: windows-latest
+          target: x86_64-pc-windows-msvc
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Get release download URL
+      uses: actions/download-artifact@v1
+      with:
+        name: release-upload-url
+        path: release-upload-url
+    - name: Set release upload URL and release version
+      shell: bash
+      run: |
+        release_upload_url="$(cat release-upload-url/release-upload-url)"
+        echo "RELEASE_UPLOAD_URL=$release_upload_url" >> $GITHUB_ENV
+    - name: Install Cross
+      if: matrix.build != 'macos' && matrix.build != 'win-msvc'
+      run: |
+        cargo install cross
+        echo "CARGO=cross" >> $GITHUB_ENV
+        echo "FEATURES=--features vendored-openssl" >> $GITHUB_ENV
+
+    - name: Build
+      run: ${{ env.CARGO }} build --release --verbose $FEATURES --target ${{ matrix.target }}
+    - name: Build Deb
+      if: matrix.build == 'linux-musl-deb'
+      run: |
+        cargo install cargo-deb
+        ${{ env.CARGO }} build $FEATURES --all --release --target ${{ matrix.target }}
+        cargo deb --no-build $TARGET
+    - name: Stage Release
+      shell: bash
+      run: |
+        VERSION="${GITHUB_REF#refs/tags/}"
+        echo "version is $VERSION"
+        STAGING="dness-${VERSION:1}-${{ matrix.target }}"
+        echo "STAGING DIR: $STAGING"
+        mkdir $STAGING 
+        if [[ "${{ matrix.os }}" = windows* ]]; then
+          cp "target/${{ matrix.target }}/release/dness.exe" "$STAGING/"
+          7z a "$STAGING.zip" "$STAGING"
+          echo "ASSET=$STAGING.zip" >> $GITHUB_ENV
+        elif [[ "${{ matrix.build }}" = linux-musl-deb ]]; then
+          cp target/${{ matrix.target }}/debian/*.deb .
+          echo ASSET=*.deb >> $GITHUB_ENV
+        else
+          strip "target/${{ matrix.target }}/release/dness"
+          cp "target/${{ matrix.target }}/release/dness" "$STAGING/"
+          tar czf "$STAGING.tar.gz" "$STAGING"
+          echo "ASSET=$STAGING.tar.gz" >> $GITHUB_ENV
+        fi
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ env.RELEASE_UPLOAD_URL }}
+        asset_path: ${{ env.ASSET }}
+        asset_name: ${{ env.ASSET }}
+        asset_content_type: application/octet-stream
