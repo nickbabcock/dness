@@ -21,6 +21,7 @@ impl DnsResolver {
                     IpAddr::V4(Ipv4Addr::new(208, 67, 220, 220)),
                 ],
                 53,
+                false,
             ),
         );
 
@@ -33,7 +34,6 @@ impl DnsResolver {
 
     pub async fn from_config(config: ResolverConfig) -> Result<Self, DnsError> {
         let resolver = TokioAsyncResolver::tokio(config, ResolverOpts::default())
-            .await
             .map_err(|e| DnsError {
                 kind: DnsErrorKind::DnsCreation(e),
             })?;
