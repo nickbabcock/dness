@@ -1,0 +1,4 @@
+type = "he"
+hostname = "test-dness-1.xyz"
+password = "super_secret_password"
+records = [ "@", "sub" ]

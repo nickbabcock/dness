@@ -33,8 +33,8 @@ impl DnsResolver {
     }
 
     pub async fn from_config(config: ResolverConfig) -> Result<Self, DnsError> {
-        let resolver = TokioAsyncResolver::tokio(config, ResolverOpts::default())
-            .map_err(|e| DnsError {
+        let resolver =
+            TokioAsyncResolver::tokio(config, ResolverOpts::default()).map_err(|e| DnsError {
                 kind: DnsErrorKind::DnsCreation(e),
             })?;
 

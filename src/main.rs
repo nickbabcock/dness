@@ -4,6 +4,7 @@ mod core;
 mod dns;
 mod errors;
 mod godaddy;
+mod he;
 mod namecheap;
 
 use crate::config::{parse_config, DnsConfig, DomainConfig};
@@ -133,6 +134,9 @@ async fn update_provider(
                 .await
                 .map_err(|e| e.into())
         }
+        DomainConfig::He(domain_config) => he::update_domains(http_client, domain_config, addr)
+            .await
+            .map_err(|e| e.into()),
     }
 }
 
