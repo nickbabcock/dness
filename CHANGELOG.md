@@ -1,3 +1,15 @@
+## 0.5.1 - 2021-04-02
+
+Add support for [he.net](http://he.net/). Below is a sample config:
+
+```toml
+[[domains]]
+type = "he"
+hostname = "test-dness-1.xyz"
+password = "super_secret_password"
+records = [ "@", "sub" ]
+```
+
 ## 0.5.0 - 2020-12-29
 
 This release is for the sysadmins out there. The dness config file is now treated as a handlebar template with variables filled in from the environment. Now one can write

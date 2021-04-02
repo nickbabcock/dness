@@ -226,6 +226,7 @@ GoDaddy dynamic dns service works as the following:
 #### Namecheap
 
 ```toml
+[[domains]]
 # Namecheap requires that dynamic dns is enabled in their UI!
 type = "namecheap"
 domain = "test-dness-1.xyz"
@@ -247,6 +248,18 @@ Updating the dns entry works as follows:
 - If the IP is the same, no action is taken
 
 This method suffers from natural flow of dns propagation. When namecheap receives the update, it may take up to an hour for cloudflare to see the new record. In the meantime, dness will keep updating namecheap servers with the WAN. This has no consequential side effects other than momentary confusion why updates are being sent to namecheap every 5 minutes. Future revisions of this provider may use another method (like API integration) if the current method proves deficient enough.
+
+### He.net
+
+```toml
+[[domains]]
+type = "he"
+hostname = "test-dness-1.xyz"
+password = "super_secret_password"
+records = [ "@", "sub" ]
+```
+
+[he.net](http://he.net/) follows the same flow as Namecheap (check the current record via DNS and update if necessary).
 
 ### Supported WAN IP Resolvers
 
