@@ -100,6 +100,7 @@ pub enum DomainConfig {
     Cloudflare(CloudflareConfig),
     GoDaddy(GoDaddyConfig),
     Namecheap(NamecheapConfig),
+    He(HeConfig),
 }
 
 impl DomainConfig {
@@ -108,6 +109,7 @@ impl DomainConfig {
             DomainConfig::Cloudflare(c) => format!("{} ({})", c.zone, "cloudflare"),
             DomainConfig::GoDaddy(c) => format!("{} ({})", c.domain, "godaddy"),
             DomainConfig::Namecheap(c) => format!("{} ({})", c.domain, "namecheap"),
+            DomainConfig::He(c) => format!("{} ({})", c.hostname, "he"),
         }
     }
 }
@@ -143,12 +145,26 @@ pub struct NamecheapConfig {
     pub records: Vec<String>,
 }
 
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct HeConfig {
+    #[serde(default = "he_base_url")]
+    pub base_url: String,
+    pub hostname: String,
+    pub password: String,
+    pub records: Vec<String>,
+}
+
 fn godaddy_base_url() -> String {
     String::from("https://api.godaddy.com")
 }
 
 fn namecheap_base_url() -> String {
     String::from("https://dynamicdns.park-your-domain.com")
+}
+
+fn he_base_url() -> String {
+    String::from("https://dyn.dns.he.net")
 }
 
 pub fn parse_config<P: AsRef<Path>>(path: P) -> Result<DnsConfig, ConfigError> {
@@ -172,9 +188,11 @@ pub fn parse_config<P: AsRef<Path>>(path: P) -> Result<DnsConfig, ConfigError> {
     handlebars.set_strict_mode(true);
 
     let data: HashMap<_, _> = std::env::vars().collect();
-    let config_contents = handlebars.render("dness_config", &data).map_err(|e| ConfigError {
-        kind: ConfigErrorKind::Render(e),
-    })?;
+    let config_contents = handlebars
+        .render("dness_config", &data)
+        .map_err(|e| ConfigError {
+            kind: ConfigErrorKind::Render(e),
+        })?;
 
     toml::from_str(&config_contents).map_err(|e| ConfigError {
         kind: ConfigErrorKind::Parse(e),
@@ -256,6 +274,21 @@ mod tests {
                 domain: String::from("test-dness-1.xyz"),
                 ddns_password: String::from("super_secret_password"),
                 records: vec![String::from("@"), String::from("*"), String::from("sub")]
+            })
+        );
+    }
+
+    #[test]
+    fn deserialize_config_he() {
+        let toml_str = &include_str!("../assets/he-config.toml");
+        let config: DomainConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(
+            config,
+            DomainConfig::He(HeConfig {
+                base_url: String::from("https://dyn.dns.he.net"),
+                hostname: String::from("test-dness-1.xyz"),
+                password: String::from("super_secret_password"),
+                records: vec![String::from("@"), String::from("sub")]
             })
         );
     }
