@@ -54,9 +54,9 @@ features = ["vendored-openssl"]
 provides = "dness"
 conflicts = "dness-musl"
 assets = [
-    ["target/release/dness", "usr/bin/dness", "755"],
-    ["assets/bare-config.toml", "etc/dness/dness.conf", "644"],
-    ["assets/dness.service", "etc/systemd/system/dness.service", "644"],
-    ["assets/dness.timer", "etc/systemd/system/dness.timer", "644"]
+    ["target/release/dness", "/usr/bin/dness", "755"],
+    ["assets/bare-config.toml", "/etc/dness/dness.conf", "644"],
+    ["assets/dness.service", "/etc/systemd/system/dness.service", "644"],
+    ["assets/dness.timer", "/etc/systemd/system/dness.timer", "644"]
 ]
-conf-files = ["etc/dness/dness.conf", "etc/dness/dness.env"]
+conf-files = ["etc/dness/dness.conf", "/etc/dness/dness.env"]
