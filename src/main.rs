@@ -6,6 +6,7 @@ mod errors;
 mod godaddy;
 mod he;
 mod namecheap;
+mod noip;
 
 use crate::config::{parse_config, DnsConfig, DomainConfig};
 use crate::core::Updates;
@@ -135,6 +136,9 @@ async fn update_provider(
                 .map_err(|e| e.into())
         }
         DomainConfig::He(domain_config) => he::update_domains(http_client, domain_config, addr)
+            .await
+            .map_err(|e| e.into()),
+        DomainConfig::NoIp(domain_config) => noip::update_domains(http_client, domain_config, addr)
             .await
             .map_err(|e| e.into()),
     }

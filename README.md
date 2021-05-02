@@ -261,6 +261,16 @@ records = [ "@", "sub" ]
 
 [he.net](http://he.net/) follows the same flow as Namecheap (check the current record via DNS and update if necessary).
 
+### No-Ip
+
+```toml
+[[domains]]
+type = "noip"
+hostname = "dnesstest.hopto.org"
+username = "myemail@example.org"
+password = "super_secret_password"
+```
+
 ### Supported WAN IP Resolvers
 
 There are a couple different methods for dness to resolve the WAN IP address.
