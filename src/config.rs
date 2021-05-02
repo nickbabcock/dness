@@ -101,6 +101,7 @@ pub enum DomainConfig {
     GoDaddy(GoDaddyConfig),
     Namecheap(NamecheapConfig),
     He(HeConfig),
+    NoIp(NoIpConfig),
 }
 
 impl DomainConfig {
@@ -110,6 +111,7 @@ impl DomainConfig {
             DomainConfig::GoDaddy(c) => format!("{} ({})", c.domain, "godaddy"),
             DomainConfig::Namecheap(c) => format!("{} ({})", c.domain, "namecheap"),
             DomainConfig::He(c) => format!("{} ({})", c.hostname, "he"),
+            DomainConfig::NoIp(c) => format!("{} ({})", c.hostname, "noip"),
         }
     }
 }
@@ -155,6 +157,16 @@ pub struct HeConfig {
     pub records: Vec<String>,
 }
 
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct NoIpConfig {
+    #[serde(default = "noip_base_url")]
+    pub base_url: String,
+    pub username: String,
+    pub password: String,
+    pub hostname: String,
+}
+
 fn godaddy_base_url() -> String {
     String::from("https://api.godaddy.com")
 }
@@ -165,6 +177,10 @@ fn namecheap_base_url() -> String {
 
 fn he_base_url() -> String {
     String::from("https://dyn.dns.he.net")
+}
+
+fn noip_base_url() -> String {
+    String::from("https://dynupdate.no-ip.com")
 }
 
 pub fn parse_config<P: AsRef<Path>>(path: P) -> Result<DnsConfig, ConfigError> {
@@ -347,6 +363,21 @@ mod tests {
                 },
                 domains: vec![]
             }
+        );
+    }
+
+    #[test]
+    fn deserialize_noip_config() {
+        let toml_str = &include_str!("../assets/noip-config.toml");
+        let config: DomainConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(
+            config,
+            DomainConfig::NoIp(NoIpConfig {
+                base_url: noip_base_url(),
+                username: String::from("myemail@example.org"),
+                hostname: String::from("dnesstest.hopto.org"),
+                password: String::from("super_secret_password"),
+            })
         );
     }
 }

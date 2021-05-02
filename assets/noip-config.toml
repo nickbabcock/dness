@@ -1,0 +1,4 @@
+type = "noip"
+hostname = "dnesstest.hopto.org"
+username = "myemail@example.org"
+password = "super_secret_password"
