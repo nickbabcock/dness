@@ -12,16 +12,18 @@ When one has a server that is subjected to unpredictable IP address changes, suc
 
 There are plenty of dynamic dns clients, including the venerable [ddclient](https://github.com/ddclient/ddclient), but troublesome installation + perl system dependency resolution, and cache format errors have left much to be desired. Other solutions fall short, so dness was created with the following goals:
 
-**Goals**:
+## Features:
 
-- Cross platform (Windows, Mac, Linux, ARM, BSD)
-- "zero" dependencies
-  - Depend on only already installed system wide dependencies (libssl (eg: openssl))
-  - And offer statically linked builds for truly zero dependencies
-- A standard configuration ([TOML](https://github.com/toml-lang/toml)) that is similar to ddclient's.
-- Extendable to allow for more dynamic dns services
-- Sensible logging to glean insight into inevitable problems that arise with networked services
-- Permissively licensed
+- ✔ Cross platform (Windows, Mac, Linux, ARM, BSD)
+- ✔ Zero dependencies (one can opt to dynamically link openssl when compiling from source)
+- ✔ A standard configuration ([TOML](https://github.com/toml-lang/toml)) that is similar to ddclient's
+- ✔ Support for multiple Dynamic DNS Services:
+   - [Cloudflare](#cloudflare)
+   - [GoDaddy](#godaddy)
+   - [Namecheap](#namecheap)
+   - [He.net](#henet)
+   - [No-IP](#no-ip)
+- ✔ Permissively licensed
 
 ## Installation
 
@@ -261,7 +263,7 @@ records = [ "@", "sub" ]
 
 [he.net](http://he.net/) follows the same flow as Namecheap (check the current record via DNS and update if necessary).
 
-### No-Ip
+### No-IP
 
 ```toml
 [[domains]]
