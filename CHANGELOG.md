@@ -1,3 +1,16 @@
+## 0.5.2 - 2021-05-12
+
+- Fixed deb packaging for dpkg >= 1.20.1 (ubuntu 21.04)
+- Add support for no-ip domains:
+
+```toml
+[[domains]]
+type = "noip"
+hostname = "dnesstest.hopto.org"
+username = "myemail@example.org"
+password = "super_secret_password"
+```
+
 ## 0.5.1 - 2021-04-02
 
 Add support for [he.net](http://he.net/). Below is a sample config:
