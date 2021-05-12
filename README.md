@@ -54,7 +54,8 @@ ${EDITOR:-vi} /etc/dness/dness.env
 
 ### Windows
 
-- Download the [latest ".exe"](https://github.com/nickbabcock/dness/releases/latest)
+- Download the [latest zip](https://github.com/nickbabcock/dness/releases/latest) with "windows" in its name
+- Unzip
 - Create configuration file (`dness.conf`)
 - Execute `dness.exe -c dness.conf` to verify behavior
 - If desired, use windows task scheduler to execute command at specific times
