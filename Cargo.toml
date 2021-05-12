@@ -59,4 +59,4 @@ assets = [
     ["assets/dness.service", "etc/systemd/system/dness.service", "644"],
     ["assets/dness.timer", "etc/systemd/system/dness.timer", "644"]
 ]
-conf-files = ["etc/dness/dness.conf", "etc/dness/dness.env"]
+conf-files = ["/etc/dness/dness.conf", "/etc/dness/dness.env"]
