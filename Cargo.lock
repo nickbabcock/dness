@@ -350,7 +350,7 @@ dependencies = [
 
 [[package]]
 name = "dness"
-version = "0.5.3-pre"
+version = "0.5.3"
 dependencies = [
  "assert_cmd",
  "chrono",
