@@ -1,0 +1,11 @@
+type = "dynu"
+hostname = "test-dness-1.xyz"
+username = "MyUserName"
+# ip update password:
+# https://www.dynu.com/en-US/ControlPanel/ManageCredentials
+password = "IpUpdatePassword"
+
+# The records to update.
+# "@" = "test-dness-1.xyz"
+# "sub = "sub.test-dness-1.xyz"
+records = [ "@", "sub" ]

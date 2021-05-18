@@ -23,6 +23,7 @@ There are plenty of dynamic dns clients, including the venerable [ddclient](http
    - [Namecheap](#namecheap)
    - [He.net](#henet)
    - [No-IP](#no-ip)
+   - [Dynu](#dynu)
 - ✔ Permissively licensed
 
 ## Installation
@@ -272,6 +273,24 @@ type = "noip"
 hostname = "dnesstest.hopto.org"
 username = "myemail@example.org"
 password = "super_secret_password"
+```
+
+### Dynu
+
+```toml
+[[domains]]
+type = "dynu"
+hostname = "test-dness-1.xyz"
+username = "MyUserName"
+
+# ip update password:
+# https://www.dynu.com/en-US/ControlPanel/ManageCredentials
+password = "IpUpdatePassword"
+
+# The records to update.
+# "@" = "test-dness-1.xyz"
+# "sub = "sub.test-dness-1.xyz"
+records = [ "@", "sub" ]
 ```
 
 ### Supported WAN IP Resolvers

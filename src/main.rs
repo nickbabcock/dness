@@ -2,6 +2,7 @@ mod cloudflare;
 mod config;
 mod core;
 mod dns;
+mod dynu;
 mod errors;
 mod godaddy;
 mod he;
@@ -139,6 +140,9 @@ async fn update_provider(
             .await
             .map_err(|e| e.into()),
         DomainConfig::NoIp(domain_config) => noip::update_domains(http_client, domain_config, addr)
+            .await
+            .map_err(|e| e.into()),
+        DomainConfig::Dynu(domain_config) => dynu::update_domains(http_client, domain_config, addr)
             .await
             .map_err(|e| e.into()),
     }

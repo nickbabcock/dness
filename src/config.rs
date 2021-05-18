@@ -102,6 +102,7 @@ pub enum DomainConfig {
     Namecheap(NamecheapConfig),
     He(HeConfig),
     NoIp(NoIpConfig),
+    Dynu(DynuConfig),
 }
 
 impl DomainConfig {
@@ -112,6 +113,7 @@ impl DomainConfig {
             DomainConfig::Namecheap(c) => format!("{} ({})", c.domain, "namecheap"),
             DomainConfig::He(c) => format!("{} ({})", c.hostname, "he"),
             DomainConfig::NoIp(c) => format!("{} ({})", c.hostname, "noip"),
+            DomainConfig::Dynu(c) => format!("{} ({})", c.hostname, "dynu"),
         }
     }
 }
@@ -167,6 +169,17 @@ pub struct NoIpConfig {
     pub hostname: String,
 }
 
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct DynuConfig {
+    #[serde(default = "dynu_base_url")]
+    pub base_url: String,
+    pub hostname: String,
+    pub username: String,
+    pub password: String,
+    pub records: Vec<String>,
+}
+
 fn godaddy_base_url() -> String {
     String::from("https://api.godaddy.com")
 }
@@ -181,6 +194,10 @@ fn he_base_url() -> String {
 
 fn noip_base_url() -> String {
     String::from("https://dynupdate.no-ip.com")
+}
+
+fn dynu_base_url() -> String {
+    String::from("https://api.dynu.com")
 }
 
 pub fn parse_config<P: AsRef<Path>>(path: P) -> Result<DnsConfig, ConfigError> {
@@ -377,6 +394,22 @@ mod tests {
                 username: String::from("myemail@example.org"),
                 hostname: String::from("dnesstest.hopto.org"),
                 password: String::from("super_secret_password"),
+            })
+        );
+    }
+
+    #[test]
+    fn deserialize_config_dynu() {
+        let toml_str = &include_str!("../assets/dynu-config.toml");
+        let config: DomainConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(
+            config,
+            DomainConfig::Dynu(DynuConfig {
+                base_url: String::from("https://api.dynu.com"),
+                hostname: String::from("test-dness-1.xyz"),
+                username: String::from("MyUserName"),
+                password: String::from("IpUpdatePassword"),
+                records: vec![String::from("@"), String::from("sub")]
             })
         );
     }
