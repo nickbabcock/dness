@@ -1,3 +1,23 @@
+## 0.5.3 - 2021-05-18
+
+- Add support for dynu domains:
+
+```toml
+[[domains]]
+type = "dynu"
+hostname = "test-dness-1.xyz"
+username = "MyUserName"
+
+# ip update password:
+# https://www.dynu.com/en-US/ControlPanel/ManageCredentials
+password = "IpUpdatePassword"
+
+# The records to update.
+# "@" = "test-dness-1.xyz"
+# "sub = "sub.test-dness-1.xyz"
+records = [ "@", "sub" ]
+```
+
 ## 0.5.2 - 2021-05-12
 
 - Fixed deb packaging for dpkg >= 1.20.1 (ubuntu 21.04)
