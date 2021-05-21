@@ -280,7 +280,7 @@ password = "super_secret_password"
 ```toml
 [[domains]]
 type = "dynu"
-hostname = "test-dness-1.xyz"
+hostname = "test-dness.camdvr.org"
 username = "MyUserName"
 
 # ip update password:
@@ -288,8 +288,8 @@ username = "MyUserName"
 password = "IpUpdatePassword"
 
 # The records to update.
-# "@" = "test-dness-1.xyz"
-# "sub = "sub.test-dness-1.xyz"
+# "@" = "test-dness.camdvr.org"
+# "sub = "sub.test-dness.camdvr.org"
 records = [ "@", "sub" ]
 ```
 
