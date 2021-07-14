@@ -35,7 +35,7 @@ impl DnsResolver {
     pub async fn from_config(config: ResolverConfig) -> Result<Self, DnsError> {
         let resolver =
             TokioAsyncResolver::tokio(config, ResolverOpts::default()).map_err(|e| DnsError {
-                kind: DnsErrorKind::DnsCreation(e),
+                kind: Box::new(DnsErrorKind::DnsCreation(e)),
             })?;
 
         Ok(DnsResolver { resolver })
@@ -49,14 +49,14 @@ impl DnsResolver {
             .ipv4_lookup(host)
             .await
             .map_err(|e| DnsError {
-                kind: DnsErrorKind::DnsResolve(e),
+                kind: Box::new(DnsErrorKind::DnsResolve(e)),
             })?;
 
         // If we get anything other than 1 address back, it's an error
         let addresses: Vec<Ipv4Addr> = response.iter().cloned().collect();
         if addresses.len() != 1 {
             Err(DnsError {
-                kind: DnsErrorKind::UnexpectedResponse(addresses.len()),
+                kind: Box::new(DnsErrorKind::UnexpectedResponse(addresses.len())),
             })
         } else {
             Ok(addresses[0])

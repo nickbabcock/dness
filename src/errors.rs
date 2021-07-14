@@ -114,7 +114,7 @@ impl fmt::Display for DnessError {
 
 #[derive(Debug)]
 pub struct DnsError {
-    pub kind: DnsErrorKind,
+    pub kind: Box<DnsErrorKind>,
 }
 
 #[derive(Debug)]
@@ -126,7 +126,7 @@ pub enum DnsErrorKind {
 
 impl error::Error for DnsError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self.kind {
+        match *self.kind {
             DnsErrorKind::DnsCreation(ref e) => Some(e),
             DnsErrorKind::DnsResolve(ref e) => Some(e),
             DnsErrorKind::UnexpectedResponse(_) => None,
@@ -136,7 +136,7 @@ impl error::Error for DnsError {
 
 impl fmt::Display for DnsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.kind {
+        match &*self.kind {
             DnsErrorKind::DnsCreation(_) => write!(f, "could not create dns resolver"),
             DnsErrorKind::DnsResolve(_) => write!(f, "could not resolve via dns"),
             DnsErrorKind::UnexpectedResponse(results) => {
