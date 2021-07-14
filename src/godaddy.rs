@@ -118,8 +118,8 @@ impl<'a> GoClient<'a> {
         }
 
         Ok(Updates {
-            current,
             updated,
+            current,
             ..Updates::default()
         })
     }

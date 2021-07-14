@@ -49,7 +49,7 @@ pub async fn update_domains(
     let resolver = DnsResolver::create_cloudflare().await?;
     let dns_query = format!("{}.", &config.hostname);
     let response = resolver.ipv4_lookup(&dns_query).await;
-    let provider = NoIpProvider { config, client };
+    let provider = NoIpProvider { client, config };
     match response {
         Ok(ip) => {
             if ip == wan {
