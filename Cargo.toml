@@ -43,7 +43,7 @@ default-features = false
 features = ["termcolor", "atty", "regex"]
 
 [dev-dependencies]
-assert_cmd = "1.0"
+assert_cmd = "2.0"
 rouille = "3"
 
 [package.metadata.deb]
