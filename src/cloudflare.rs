@@ -326,7 +326,7 @@ impl<'a> CloudflareClient<'a> {
                 Ok(ip) => {
                     if ip != addr {
                         updated += 1;
-                        self.update_record(&record, addr).await?;
+                        self.update_record(record, addr).await?;
 
                         info!(
                             "{} from zone {} updated from {} to {}",
@@ -343,7 +343,7 @@ impl<'a> CloudflareClient<'a> {
                 Err(ref e) => {
                     updated += 1;
                     warn!("could not parse domain {} address {} as ipv4 -- will replace it. Original error: {}", record.name, record.content, e);
-                    self.update_record(&record, addr).await?;
+                    self.update_record(record, addr).await?;
 
                     info!(
                         "{} from zone {} update from {} to {}",
@@ -418,7 +418,7 @@ pub async fn update_domains(
     config: &CloudflareConfig,
     addr: Ipv4Addr,
 ) -> Result<Updates, ClError> {
-    CloudflareClient::create(&client, &config)
+    CloudflareClient::create(client, config)
         .await?
         .update(addr)
         .await

@@ -91,7 +91,7 @@ impl<'a> GoClient<'a> {
             Ok(ip) => {
                 if ip != addr {
                     updated += 1;
-                    self.update_record(&record, addr).await?;
+                    self.update_record(record, addr).await?;
 
                     info!(
                         "{} from domain {} updated from {} to {}",
@@ -108,7 +108,7 @@ impl<'a> GoClient<'a> {
             Err(ref e) => {
                 updated += 1;
                 warn!("could not parse domain {} address {} as ipv4 -- will replace it. Original error: {}", record.name, record.data, e);
-                self.update_record(&record, addr).await?;
+                self.update_record(record, addr).await?;
 
                 info!(
                     "{} from domain {} updated from {} to {}",

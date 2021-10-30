@@ -93,7 +93,7 @@ async fn ipify_resolve_ip(client: &reqwest::Client) -> Result<Ipv4Addr, DnessErr
 async fn resolve_ip(client: &reqwest::Client, config: &DnsConfig) -> Ipv4Addr {
     let res = match config.ip_resolver.to_ascii_lowercase().as_str() {
         "opendns" => wan_lookup_ip().await.map_err(|x| x.into()),
-        "ipify" => ipify_resolve_ip(&client).await,
+        "ipify" => ipify_resolve_ip(client).await,
         _ => {
             error!("unrecognized ip resolver: {}", config.ip_resolver);
             std::process::exit(1)
