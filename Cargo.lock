@@ -1302,9 +1302,9 @@ dependencies = [
 
 [[package]]
 name = "rouille"
-version = "3.3.1"
+version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dfc1bcf3b32bd9ef568402e750404c369ff172a6a34597c858f8ccf5f3bed013"
+checksum = "660f081d053ac1dce7c2683a3f2818d9b60a293bc142e7d3de36fd5541ebb671"
 dependencies = [
  "base64",
  "brotli2",
