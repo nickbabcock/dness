@@ -38,7 +38,7 @@ rustls = ["reqwest/rustls-tls", "trust-dns-resolver/dns-over-rustls"]
 # systemd / journald will show the timestamp that received the log line at.
 # Ideally, log formatting should be configurable, but this is a good first step
 [dependencies.env_logger]
-version = "0.8"
+version = "0.9"
 default-features = false
 features = ["termcolor", "atty", "regex"]
 
