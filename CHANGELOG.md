@@ -1,3 +1,8 @@
+## 0.5.4 - 2022-01-06
+
+- Add m1 (aarch64) mac builds
+- Update dependencies
+
 ## 0.5.3 - 2021-05-18
 
 - Add support for dynu domains:
