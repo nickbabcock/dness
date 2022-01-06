@@ -1,3 +1,7 @@
+## 0.5.5 - 2022-01-06
+
+v0.5.4 wasn't properly released, so v0.5.5 is v0.5.4.
+
 ## 0.5.4 - 2022-01-06
 
 - Add m1 (aarch64) mac builds
