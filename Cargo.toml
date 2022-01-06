@@ -1,6 +1,6 @@
 [package]
 name = "dness"
-version = "0.5.4-pre"
+version = "0.5.4"
 authors = ["Nick Babcock <nbabcock19@hotmail.com>"]
 description = "a dynamic dns client"
 homepage = "https://github.com/nickbabcock/dness"
