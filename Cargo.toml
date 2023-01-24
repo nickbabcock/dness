@@ -14,7 +14,7 @@ edition = "2018"
 trust-dns-resolver = "0.22"
 reqwest = { version = "0.11", default-features = false, features = ["json"] }
 serde_json = "1.0"
-toml = "0.5"
+toml = "0.6"
 structopt = "0.3.26"
 chrono = "0.4"
 tokio = { version = "1", features = ["macros"] }
