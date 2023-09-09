@@ -21,7 +21,7 @@ jobs:
         - aarch64-unknown-linux-gnu
         - arm-unknown-linux-gnueabi
         - armv7-unknown-linux-gnueabihf
-        - mips-unknown-linux-gnu
+        - powerpc64-unknown-linux-gnu
         - i686-unknown-linux-gnu
         - x86_64-unknown-linux-musl
         - x86_64-apple-darwin
@@ -37,7 +37,7 @@ jobs:
         - build: armv7-unknown-linux-gnueabihf
           os: ubuntu-latest
           run_test: 'false'
-        - build: mips-unknown-linux-gnu
+        - build: powerpc64-unknown-linux-gnu
           os: ubuntu-latest
           run_test: 'false'
         - build: i686-unknown-linux-gnu
