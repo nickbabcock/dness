@@ -14,18 +14,20 @@ use crate::core::Updates;
 use crate::dns::wan_lookup_ip;
 use crate::errors::DnessError;
 use chrono::Duration;
+use clap::Parser;
 use log::{error, info, LevelFilter};
 use std::error;
 use std::fmt::Write;
 use std::net::Ipv4Addr;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
-use structopt::StructOpt;
 
-#[derive(StructOpt, Debug)]
-#[structopt(name = "dness")]
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
 struct Opt {
-    #[structopt(short = "c", long = "config")]
-    config_file: Option<String>,
+    /// Sets a custom config file
+    #[structopt(short, long)]
+    config: Option<PathBuf>,
 }
 
 fn log_err(context: &str, err: Box<dyn error::Error>) {
@@ -52,15 +54,16 @@ fn init_logging(lvl: LevelFilter) {
 /// Parses the TOML configuration. If no configuration file is present, the default configuration
 /// is returned so that the WAN IP can still be logged on execution. If there is an error parsing
 /// the configuration file, exit with a non-zero status code.
-fn init_configuration(file: &Option<String>) -> DnsConfig {
-    if let Some(ref config_file) = file {
-        match parse_config(&config_file) {
+fn init_configuration<T: AsRef<Path>>(file: Option<T>) -> DnsConfig {
+    if let Some(config_file) = file {
+        let path = config_file.as_ref();
+        match parse_config(path) {
             Ok(c) => c,
             Err(e) => {
                 // If there is an error during configuration, we assume a log level of Warn so that
                 // the user will see the error printed.
                 init_logging(LevelFilter::Warn);
-                let desc = format!("could not configure application from: {}", &config_file);
+                let desc = format!("could not configure application from: {}", path.display());
                 log_err(&desc, Box::new(e));
                 std::process::exit(1)
             }
@@ -151,8 +154,8 @@ async fn update_provider(
 #[tokio::main]
 async fn main() {
     let start = Instant::now();
-    let opt = Opt::from_args();
-    let config = init_configuration(&opt.config_file);
+    let opt = Opt::parse();
+    let config = init_configuration(opt.config.as_ref());
 
     init_logging(config.log.level);
 
