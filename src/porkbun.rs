@@ -169,7 +169,7 @@ impl<'a> PorkbunClient<'a> {
 /// Porkbun dynamic dns service works as the following:
 ///
 /// 1. Send a GET request to find all records in the domain
-/// 2. Filter records to just A records
+/// 2. Filter records to just records in VALID_RECORD_TYPES, only "A" records when written
 /// 3. Find all the expected records (and log those that are missing) and check their current IP
 /// 4. Update the remote IP as needed, ensuring that original properties are preserved in the
 ///    upload, so that we don't overwrite a property like TTL.
