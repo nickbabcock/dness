@@ -8,6 +8,7 @@ mod godaddy;
 mod he;
 mod namecheap;
 mod noip;
+mod porkbun;
 
 use crate::config::{parse_config, DnsConfig, DomainConfig};
 use crate::core::Updates;
@@ -62,7 +63,7 @@ fn init_configuration<T: AsRef<Path>>(file: Option<T>) -> DnsConfig {
             Err(e) => {
                 // If there is an error during configuration, we assume a log level of Warn so that
                 // the user will see the error printed.
-                init_logging(LevelFilter::Warn);
+                init_logging(LevelFilter::Info);
                 let desc = format!("could not configure application from: {}", path.display());
                 log_err(&desc, Box::new(e));
                 std::process::exit(1)
@@ -146,6 +147,9 @@ async fn update_provider(
             .await
             .map_err(|e| e.into()),
         DomainConfig::Dynu(domain_config) => dynu::update_domains(http_client, domain_config, addr)
+            .await
+            .map_err(|e| e.into()),
+        DomainConfig::Porkbun(domain_config) => porkbun::update_domains(http_client, domain_config, addr)
             .await
             .map_err(|e| e.into()),
     }
