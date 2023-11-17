@@ -225,7 +225,7 @@ mod tests {
                         id: String::from("356408594"),
                         name: String::from("sub.example.com"),
                         r#type: String::from("A"),
-                        content: String::from("256.256.256.256"),
+                        content: String::from("2.2.2.2"),
                         ttl: String::from("600"),
                         prio: Some(String::from("0")),
                         other: expected_1,
@@ -234,7 +234,7 @@ mod tests {
                         id: String::from("354399918"),
                         name: String::from("example.com"),
                         r#type: String::from("A"),
-                        content: String::from("256.256.256.256"),
+                        content: String::from("2.2.2.2"),
                         ttl: String::from("700"),
                         prio: Some(String::from("0")),
                         other: expected_2.clone(),
@@ -289,7 +289,7 @@ mod tests {
     async fn test_porkbun_update() {
         let (tx, addr) = porkbun_rouille_server!();
         let http_client = reqwest::Client::new();
-        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let new_ip = Ipv4Addr::new(2, 2, 2, 1);
         let config = PorkbunConfig {
             base_url: format!("http://{}/api/json/v3", addr),
             domain: String::from("example.com"),
@@ -307,6 +307,58 @@ mod tests {
                 current: 0,
                 updated: 2,
                 missing: 0,
+            }
+        )
+    }
+
+    #[tokio::test]
+    async fn test_porkbun_current() {
+        let (tx, addr) = porkbun_rouille_server!();
+        let http_client = reqwest::Client::new();
+        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let config = PorkbunConfig {
+            base_url: format!("http://{}/api/json/v3", addr),
+            domain: String::from("example.com"),
+            key: String::from("key-1"),
+            secret: String::from("secret-1"),
+            records: vec![String::from(""), String::from("sub")],
+        };
+
+        let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
+        tx.send(()).unwrap();
+
+        assert_eq!(
+            summary,
+            Updates {
+                current: 2,
+                updated: 0,
+                missing: 0,
+            }
+        )
+    }
+
+    #[tokio::test]
+    async fn test_porkbun_missing() {
+        let (tx, addr) = porkbun_rouille_server!();
+        let http_client = reqwest::Client::new();
+        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let config = PorkbunConfig {
+            base_url: format!("http://{}/api/json/v3", addr),
+            domain: String::from("example.com"),
+            key: String::from("key-1"),
+            secret: String::from("secret-1"),
+            records: vec![String::from(""), String::from("sub"), String::from("sub2")],
+        };
+
+        let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
+        tx.send(()).unwrap();
+
+        assert_eq!(
+            summary,
+            Updates {
+                current: 2,
+                updated: 0,
+                missing: 1,
             }
         )
     }
