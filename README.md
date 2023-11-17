@@ -24,6 +24,7 @@ There are plenty of dynamic dns clients, including the venerable [ddclient](http
    - [He.net](#henet)
    - [No-IP](#no-ip)
    - [Dynu](#dynu)
+   - [Porkbun](#porkbun)
 - ✔ Permissively licensed
 
 ## Installation
@@ -253,7 +254,7 @@ Updating the dns entry works as follows:
 
 This method suffers from natural flow of dns propagation. When namecheap receives the update, it may take up to an hour for cloudflare to see the new record. In the meantime, dness will keep updating namecheap servers with the WAN. This has no consequential side effects other than momentary confusion why updates are being sent to namecheap every 5 minutes. Future revisions of this provider may use another method (like API integration) if the current method proves deficient enough.
 
-### He.net
+#### He.net
 
 ```toml
 [[domains]]
@@ -265,7 +266,7 @@ records = [ "@", "sub" ]
 
 [he.net](http://he.net/) follows the same flow as Namecheap (check the current record via DNS and update if necessary).
 
-### No-IP
+#### No-IP
 
 ```toml
 [[domains]]
@@ -275,7 +276,7 @@ username = "myemail@example.org"
 password = "super_secret_password"
 ```
 
-### Dynu
+#### Dynu
 
 ```toml
 [[domains]]
@@ -292,6 +293,33 @@ password = "IpUpdatePassword"
 # "sub = "sub.test-dness.camdvr.org"
 records = [ "@", "sub" ]
 ```
+
+#### Porkbun
+
+```toml
+[[domains]]
+# denote that the domain is managed by godaddy
+type = "porkbun"
+
+# The Porkbun domain: https://porkbun.com/account/domainSpeedy
+domain = "example.com"
+
+# This is the api key, you can create one here:
+# https://porkbun.com/account/api
+key = "abc123"
+
+# The password for the key, top secret! Only visible once when you create the key.
+secret = "ef"
+
+# The records to update. "" = "example.com", "a" = "a.example.com"
+records = [ "", "a" ]
+```
+
+Porkbun dynamic dns service works similar to GoDaddy:
+
+1. Send a POST request to find all records in the domain
+2. Find all the expected records (and log those that are missing) and check their current IP
+3. Update the remote IP as needed, ensuring that original properties are preserved in the upload, so that we don't overwrite a property like TTL.
 
 ### Supported WAN IP Resolvers
 
