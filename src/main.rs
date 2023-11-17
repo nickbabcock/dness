@@ -63,7 +63,7 @@ fn init_configuration<T: AsRef<Path>>(file: Option<T>) -> DnsConfig {
             Err(e) => {
                 // If there is an error during configuration, we assume a log level of Warn so that
                 // the user will see the error printed.
-                init_logging(LevelFilter::Info);
+                init_logging(LevelFilter::Warn);
                 let desc = format!("could not configure application from: {}", path.display());
                 log_err(&desc, Box::new(e));
                 std::process::exit(1)
