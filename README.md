@@ -298,7 +298,7 @@ records = [ "@", "sub" ]
 
 ```toml
 [[domains]]
-# denote that the domain is managed by godaddy
+# denote that the domain is managed by porkbun
 type = "porkbun"
 
 # The Porkbun domain: https://porkbun.com/account/domainSpeedy
