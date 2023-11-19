@@ -32,19 +32,18 @@ struct PorkbunRecord {
 
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 struct PorkbunRecordsEditRequest {
-    api_key: String,
-    secret: String,
+    apikey: String,
+    secretapikey: String,
     name: String,
     r#type: String,
     content: String,
     ttl: String,
-    prio: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 struct PorkbunRecordsRequest {
-    api_key: String,
-    secret: String,
+    apikey: String,
+    secretapikey: String,
 }
 
 #[derive(Clone, Debug)]
@@ -76,8 +75,8 @@ impl<'a> PorkbunClient<'a> {
             .client
             .post(post_url.clone())
             .json(&PorkbunRecordsRequest{
-                api_key: self.key.clone(),
-                secret: self.secret.clone()
+                apikey: self.key.clone(),
+                secretapikey: self.secret.clone()
             })
             .send()
             .await
@@ -100,17 +99,18 @@ impl<'a> PorkbunClient<'a> {
             self.base_url, self.domain, record.id
         );
 
+
+
         self.client
             .post(&post_url)
-            .json(&vec![PorkbunRecordsEditRequest {
-                api_key: self.key.clone(),
-                secret: self.secret.clone(),
+            .json(&PorkbunRecordsEditRequest {
+                apikey: self.key.clone(),
+                secretapikey: self.secret.clone(),
                 name: self.strip_domain_from_name(&record.name),
                 content: addr.to_string(),
                 ttl: record.ttl.clone(),
-                prio: record.prio.clone(),
                 r#type: record.r#type.clone(),
-            }])
+            })
             .send()
             .await
             .map_err(|e| DnessError::send_http(&post_url, "porkbun update records", e))?
