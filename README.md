@@ -301,7 +301,8 @@ records = [ "@", "sub" ]
 # denote that the domain is managed by porkbun
 type = "porkbun"
 
-# The Porkbun domain: https://porkbun.com/account/domainSpeedy
+# The Porkbun domain: https://porkbun.com/account/domainsSpeedy
+# IMPORTANT: You must enable API Access for the domain at the above url.
 domain = "example.com"
 
 # This is the api key, you can create one here:
@@ -311,8 +312,9 @@ key = "abc123"
 # The password for the key, top secret! Only visible once when you create the key.
 secret = "ef"
 
-# The records to update. "" = "example.com", "a" = "a.example.com"
-records = [ "", "a" ]
+# The records to update. "@" = "example.com", "a" = "a.example.com" "*" = "*.example.com"
+# Both "@" and "" are valid to configure root domain.
+records = [ "@", "a" ]
 ```
 
 Porkbun dynamic dns service works similar to GoDaddy:

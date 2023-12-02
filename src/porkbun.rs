@@ -57,7 +57,7 @@ struct PorkbunClient<'a> {
 }
 
 impl<'a> PorkbunClient<'a> {
-    fn strip_domain_from_name(&self, name: &String) -> String {
+    fn strip_domain_from_name(&self, name: &str) -> String {
         name.trim_end_matches(&self.domain)
             .trim_end_matches('.')
             .into()
@@ -183,7 +183,19 @@ pub async fn update_domains(
         domain: config.domain.clone(),
         key: config.key.clone(),
         secret: config.secret.clone(),
-        records: config.records.iter().cloned().collect(),
+        records: config
+            .records
+            .iter()
+            .map(|r| {
+                // To be consistent with other dns providers we allow the user to use '@' for root
+                // domain. Porkbun uses an empty string, so we map that here.
+                if r == "@" {
+                    String::from("")
+                } else {
+                    r.to_string()
+                }
+            })
+            .collect(),
         client,
     };
 
@@ -298,7 +310,7 @@ mod tests {
             domain: String::from("example.com"),
             key: String::from("key-1"),
             secret: String::from("secret-1"),
-            records: vec![String::from(""), String::from("sub")],
+            records: vec![String::from("@"), String::from("sub")],
         };
 
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
@@ -324,7 +336,7 @@ mod tests {
             domain: String::from("example.com"),
             key: String::from("key-1"),
             secret: String::from("secret-1"),
-            records: vec![String::from(""), String::from("sub")],
+            records: vec![String::from("@"), String::from("sub")],
         };
 
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
@@ -350,7 +362,7 @@ mod tests {
             domain: String::from("example.com"),
             key: String::from("key-1"),
             secret: String::from("secret-1"),
-            records: vec![String::from(""), String::from("sub"), String::from("sub2")],
+            records: vec![String::from("@"), String::from("sub"), String::from("sub2")],
         };
 
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
