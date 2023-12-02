@@ -1,3 +1,28 @@
+## 0.5.6 - 2023-12-02
+
+- Add support for porkbun domains
+  ```toml
+  [[domains]]
+  # denote that the domain is managed by porkbun
+  type = "porkbun"
+
+  # The Porkbun domain: https://porkbun.com/account/domainsSpeedy
+  # IMPORTANT: You must enable API Access for the domain at the above url.
+  domain = "example.com"
+
+  # This is the api key, you can create one here:
+  # https://porkbun.com/account/api
+  key = "abc123"
+
+  # The password for the key, top secret! Only visible once when you create the key.
+  secret = "ef"
+
+  # The records to update. "@" = "example.com", "a" = "a.example.com" "*" = "*.example.com"
+  # Both "@" and "" are valid to configure root domain.
+  records = [ "@", "a" ]
+  ```
+- Dependency update
+
 ## 0.5.5 - 2022-01-06
 
 v0.5.4 wasn't properly released, so v0.5.5 is v0.5.4.
