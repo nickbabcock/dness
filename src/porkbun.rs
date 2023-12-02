@@ -58,7 +58,9 @@ struct PorkbunClient<'a> {
 
 impl<'a> PorkbunClient<'a> {
     fn strip_domain_from_name(&self, name: &String) -> String {
-        name.trim_end_matches(&self.domain).trim_end_matches('.').into()
+        name.trim_end_matches(&self.domain)
+            .trim_end_matches('.')
+            .into()
     }
 
     fn log_missing_domains(&self, remote_domains: &[PorkbunRecord]) -> usize {
@@ -74,9 +76,9 @@ impl<'a> PorkbunClient<'a> {
         let response = self
             .client
             .post(post_url.clone())
-            .json(&PorkbunRecordsRequest{
+            .json(&PorkbunRecordsRequest {
                 apikey: self.key.clone(),
-                secretapikey: self.secret.clone()
+                secretapikey: self.secret.clone(),
             })
             .send()
             .await
@@ -93,13 +95,12 @@ impl<'a> PorkbunClient<'a> {
         Ok(response)
     }
 
-    async fn update_record(&self, record: &PorkbunRecord, addr: Ipv4Addr) -> Result<(), DnessError> {
-        let post_url = format!(
-            "{}/dns/edit/{}/{}",
-            self.base_url, self.domain, record.id
-        );
-
-
+    async fn update_record(
+        &self,
+        record: &PorkbunRecord,
+        addr: Ipv4Addr,
+    ) -> Result<(), DnessError> {
+        let post_url = format!("{}/dns/edit/{}/{}", self.base_url, self.domain, record.id);
 
         self.client
             .post(&post_url)
@@ -165,7 +166,6 @@ impl<'a> PorkbunClient<'a> {
     }
 }
 
-
 /// Porkbun dynamic dns service works as the following:
 ///
 /// 1. Send a GET request to find all records in the domain
@@ -195,7 +195,10 @@ pub async fn update_domains(
     };
 
     for record in records {
-        if porkbun_client.records.contains(&porkbun_client.strip_domain_from_name(&record.name)) {
+        if porkbun_client
+            .records
+            .contains(&porkbun_client.strip_domain_from_name(&record.name))
+        {
             summary += porkbun_client.ensure_current_ip(&record, addr).await?;
         }
     }
@@ -263,12 +266,12 @@ mod tests {
                     "application/json",
                     include_bytes!("../assets/porkbun-get-records.json").to_vec(),
                 ),
-                "/api/json/v3/dns/edit/example.com/356408594" => Response::from_data(
-                    "application/json",
-                    r#"{"status": "SUCCESS"}"#),
-                "/api/json/v3/dns/edit/example.com/354399918" => Response::from_data(
-                    "application/json",
-                    r#"{"status": "SUCCESS"}"#),
+                "/api/json/v3/dns/edit/example.com/356408594" => {
+                    Response::from_data("application/json", r#"{"status": "SUCCESS"}"#)
+                }
+                "/api/json/v3/dns/edit/example.com/354399918" => {
+                    Response::from_data("application/json", r#"{"status": "SUCCESS"}"#)
+                }
                 _ => Response::empty_404(),
             })
             .unwrap();
