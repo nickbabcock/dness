@@ -103,6 +103,7 @@ pub enum DomainConfig {
     He(HeConfig),
     NoIp(NoIpConfig),
     Dynu(DynuConfig),
+    Porkbun(PorkbunConfig),
 }
 
 impl DomainConfig {
@@ -114,6 +115,7 @@ impl DomainConfig {
             DomainConfig::He(c) => format!("{} ({})", c.hostname, "he"),
             DomainConfig::NoIp(c) => format!("{} ({})", c.hostname, "noip"),
             DomainConfig::Dynu(c) => format!("{} ({})", c.hostname, "dynu"),
+            DomainConfig::Porkbun(c) => format!("{} ({})", c.domain, "porkbun"),
         }
     }
 }
@@ -180,6 +182,17 @@ pub struct DynuConfig {
     pub records: Vec<String>,
 }
 
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct PorkbunConfig {
+    #[serde(default = "porkbun_base_url")]
+    pub base_url: String,
+    pub domain: String,
+    pub key: String,
+    pub secret: String,
+    pub records: Vec<String>,
+}
+
 fn godaddy_base_url() -> String {
     String::from("https://api.godaddy.com")
 }
@@ -198,6 +211,10 @@ fn noip_base_url() -> String {
 
 fn dynu_base_url() -> String {
     String::from("https://api.dynu.com")
+}
+
+fn porkbun_base_url() -> String {
+    String::from("https://porkbun.com/api/json/v3")
 }
 
 pub fn parse_config<P: AsRef<Path>>(path: P) -> Result<DnsConfig, ConfigError> {

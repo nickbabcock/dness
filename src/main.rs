@@ -8,6 +8,7 @@ mod godaddy;
 mod he;
 mod namecheap;
 mod noip;
+mod porkbun;
 
 use crate::config::{parse_config, DnsConfig, DomainConfig};
 use crate::core::Updates;
@@ -148,6 +149,11 @@ async fn update_provider(
         DomainConfig::Dynu(domain_config) => dynu::update_domains(http_client, domain_config, addr)
             .await
             .map_err(|e| e.into()),
+        DomainConfig::Porkbun(domain_config) => {
+            porkbun::update_domains(http_client, domain_config, addr)
+                .await
+                .map_err(|e| e.into())
+        }
     }
 }
 
