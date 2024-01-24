@@ -18,7 +18,7 @@ toml = "0.8"
 chrono = "0.4"
 tokio = { version = "1", features = ["macros"] }
 openssl = { version = '0.10', optional = true }
-handlebars = "4"
+handlebars = "5.0"
 clap = { version = "4.4.6", features = ["derive"] }
 
 [dependencies.serde]
