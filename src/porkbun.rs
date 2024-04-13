@@ -8,7 +8,7 @@ use std::collections::BTreeMap as Map;
 use std::collections::HashSet;
 use std::net::Ipv4Addr;
 
-const VALID_RECORD_TYPES: [&'static str; 1] = ["A"];
+const VALID_RECORD_TYPES: [&str; 1] = ["A"];
 
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 struct PorkbunResponse {
