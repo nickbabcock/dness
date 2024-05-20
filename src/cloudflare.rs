@@ -36,13 +36,6 @@ impl CloudflareAuthorizer for EmailKeyAuthorizer {
     }
 }
 
-#[derive(Serialize, PartialEq, Clone, Debug)]
-struct CloudflareUpdate<'a> {
-    type_: &'static str,
-    name: &'a str,
-    content: &'a str,
-}
-
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 struct CloudflareZone {
     id: String,
