@@ -12,13 +12,13 @@ edition = "2018"
 
 [dependencies]
 trust-dns-resolver = { version = "0.23", features = ["tokio-runtime"] }
-reqwest = { version = "0.11", default-features = false, features = ["json"] }
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
 serde_json = "1.0"
 toml = "0.8"
 chrono = "0.4"
 tokio = { version = "1", features = ["macros"] }
 openssl = { version = '0.10', optional = true }
-handlebars = "5.0"
+handlebars = "6.1"
 clap = { version = "4.4.6", features = ["derive"] }
 
 [dependencies.serde]
@@ -38,7 +38,7 @@ rustls = ["reqwest/rustls-tls", "trust-dns-resolver/dns-over-rustls"]
 # systemd / journald will show the timestamp that received the log line at.
 # Ideally, log formatting should be configurable, but this is a good first step
 [dependencies.env_logger]
-version = "0.10"
+version = "0.11"
 default-features = false
 features = ["color", "auto-color", "regex"]
 
