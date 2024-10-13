@@ -214,7 +214,7 @@ fn dynu_base_url() -> String {
 }
 
 fn porkbun_base_url() -> String {
-    String::from("https://porkbun.com/api/json/v3")
+    String::from("https://api.porkbun.com/api/json/v3")
 }
 
 pub fn parse_config<P: AsRef<Path>>(path: P) -> Result<DnsConfig, ConfigError> {
