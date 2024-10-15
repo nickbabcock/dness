@@ -1,3 +1,8 @@
+## 0.5.7 - 2024-10-15
+
+- Update default porkbun API domain to `api.porkbun.com`
+- Update internal dependencies to latest
+
 ## 0.5.6 - 2023-12-02
 
 - Add support for porkbun domains
