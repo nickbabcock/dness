@@ -1,6 +1,6 @@
 use std::error;
 use std::fmt;
-use trust_dns_resolver::error::ResolveError;
+use hickory_resolver::error::ResolveError;
 
 #[derive(Debug)]
 pub enum DnessErrorKind {
