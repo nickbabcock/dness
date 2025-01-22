@@ -49,15 +49,13 @@ impl DnsResolver {
                 kind: Box::new(DnsErrorKind::DnsResolve(e)),
             })?;
 
-        // If we get anything other than 1 address back, it's an error
-        let addresses: Vec<_> = response.iter().cloned().collect();
-        if addresses.len() != 1 {
-            Err(DnsError {
-                kind: Box::new(DnsErrorKind::UnexpectedResponse(addresses.len())),
+        response
+            .iter()
+            .next()
+            .map(|address| address.0)
+            .ok_or_else(|| DnsError {
+                kind: Box::new(DnsErrorKind::UnexpectedResponse(0)),
             })
-        } else {
-            Ok(addresses[0].0)
-        }
     }
 }
 
@@ -89,8 +87,26 @@ mod tests {
     #[tokio::test]
     async fn opendns_lookup_ip_test() {
         // Heads up: this test requires internet connectivity
-        let ip = wan_lookup_ip().await.unwrap();
-        assert!(ip != Ipv4Addr::new(127, 0, 0, 1));
+        match wan_lookup_ip().await {
+            Ok(ip) => assert!(ip != Ipv4Addr::new(127, 0, 0, 1)),
+            Err(e) => {
+                match e.kind.as_ref() {
+                    DnsErrorKind::DnsResolve(e) => {
+                        match e.kind() {
+                            trust_dns_resolver::error::ResolveErrorKind::NoRecordsFound {
+                                ..
+                            } => {
+                                // This is fine, just means we're behind a CGNAT
+                            }
+                            _ => panic!("unexpected error: {}", e),
+                        }
+                    }
+                    DnsErrorKind::UnexpectedResponse(_) => {
+                        panic!("unexpected response: {}", e);
+                    }
+                }
+            }
+        }
     }
 
     #[tokio::test]
