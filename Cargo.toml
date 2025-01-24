@@ -11,7 +11,7 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
-trust-dns-resolver = { version = "0.23", features = ["tokio-runtime"] }
+hickory-resolver = { version = "0.24.2", features = ["tokio-runtime"] }
 reqwest = { version = "0.12", default-features = false, features = ["json"] }
 serde_json = "1.0"
 toml = "0.8"
@@ -30,9 +30,9 @@ version = "0.4"
 features = ["serde"]
 
 [features]
-default = ["reqwest/default-tls", "trust-dns-resolver/dns-over-native-tls"]
+default = ["reqwest/default-tls", "hickory-resolver/dns-over-native-tls"]
 vendored-openssl = ["openssl/vendored"]
-rustls = ["reqwest/rustls-tls", "trust-dns-resolver/dns-over-rustls"]
+rustls = ["reqwest/rustls-tls", "hickory-resolver/dns-over-rustls"]
 
 # Disable logging timestamp info (ie: the humantime feature) as mechanisms like
 # systemd / journald will show the timestamp that received the log line at.

@@ -1,7 +1,7 @@
 use crate::errors::{DnsError, DnsErrorKind};
 use std::net::{IpAddr, Ipv4Addr};
-use trust_dns_resolver::config::{NameServerConfigGroup, ResolverConfig, ResolverOpts};
-use trust_dns_resolver::TokioAsyncResolver;
+use hickory_resolver::config::{NameServerConfigGroup, ResolverConfig, ResolverOpts};
+use hickory_resolver::TokioAsyncResolver;
 
 #[derive(Debug)]
 pub struct DnsResolver {
@@ -93,7 +93,7 @@ mod tests {
                 match e.kind.as_ref() {
                     DnsErrorKind::DnsResolve(e) => {
                         match e.kind() {
-                            trust_dns_resolver::error::ResolveErrorKind::NoRecordsFound {
+                            hickory_resolver::error::ResolveErrorKind::NoRecordsFound {
                                 ..
                             } => {
                                 // This is fine, just means we're behind a CGNAT
