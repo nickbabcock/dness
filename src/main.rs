@@ -10,6 +10,12 @@ mod namecheap;
 mod noip;
 mod porkbun;
 
+// Avoid musl's default allocator due to lackluster performance
+// https://nickb.dev/blog/default-musl-allocator-considered-harmful-to-performance
+#[cfg(target_env = "musl")]
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 use crate::config::{parse_config, DnsConfig, DomainConfig};
 use crate::core::Updates;
 use crate::dns::wan_lookup_ip;
