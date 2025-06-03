@@ -27,7 +27,7 @@ struct GoClient<'a> {
     client: &'a reqwest::Client,
 }
 
-impl<'a> GoClient<'a> {
+impl GoClient<'_> {
     fn log_missing_domains(&self, remote_domains: &[GoRecord]) -> usize {
         let actual = remote_domains
             .iter()

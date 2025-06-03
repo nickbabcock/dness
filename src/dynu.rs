@@ -11,7 +11,7 @@ pub struct DynuProvider<'a> {
     config: &'a DynuConfig,
 }
 
-impl<'a> DynuProvider<'a> {
+impl DynuProvider<'_> {
     pub async fn update_domain(&self, host: &str, wan: Ipv4Addr) -> Result<(), DnessError> {
         let base = self.config.base_url.trim_end_matches('/').to_string();
         let get_url = format!("{}/nic/update", base);

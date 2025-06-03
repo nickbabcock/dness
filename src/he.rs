@@ -10,7 +10,7 @@ pub struct HeProvider<'a> {
     config: &'a HeConfig,
 }
 
-impl<'a> HeProvider<'a> {
+impl HeProvider<'_> {
     /// https://dns.he.net/docs.html
     pub async fn update_domain(&self, host: &str, wan: Ipv4Addr) -> Result<(), DnessError> {
         let base = self.config.base_url.trim_end_matches('/').to_string();

@@ -56,7 +56,7 @@ struct PorkbunClient<'a> {
     client: &'a reqwest::Client,
 }
 
-impl<'a> PorkbunClient<'a> {
+impl PorkbunClient<'_> {
     fn strip_domain_from_name(&self, name: &str) -> String {
         name.trim_end_matches(&self.domain)
             .trim_end_matches('.')

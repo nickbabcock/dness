@@ -8,7 +8,7 @@ pub struct NoIpProvider<'a> {
     config: &'a NoIpConfig,
 }
 
-impl<'a> NoIpProvider<'a> {
+impl NoIpProvider<'_> {
     /// https://www.noip.com/integrate/request
     pub async fn update_domain(&self, wan: Ipv4Addr) -> Result<(), DnessError> {
         let base = self.config.base_url.trim_end_matches('/').to_string();
