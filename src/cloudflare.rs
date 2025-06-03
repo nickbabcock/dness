@@ -179,7 +179,7 @@ fn create_authorizer(config: &CloudflareConfig) -> Box<dyn CloudflareAuthorizer>
     }
 }
 
-impl<'a> CloudflareClient<'a> {
+impl CloudflareClient<'_> {
     async fn create<'b>(
         client: &'b reqwest::Client,
         config: &CloudflareConfig,
