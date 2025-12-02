@@ -135,6 +135,10 @@ pub enum IpType {
     V6,
 }
 
+fn ipv4_only() -> Vec<IpType> {
+    vec![IpType::V4]
+}
+
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct CloudflareConfig {
@@ -143,7 +147,7 @@ pub struct CloudflareConfig {
     pub token: Option<String>,
     pub zone: String,
     pub records: Vec<String>,
-    #[serde(default)]
+    #[serde(default = "ipv4_only")]
     pub ip_types: Vec<IpType>,
 }
 
@@ -309,7 +313,7 @@ mod tests {
                     token: Some(String::from("dec0de")),
                     zone: String::from("example.com"),
                     records: vec![String::from("n.example.com")],
-                    ip_types: vec![],
+                    ip_types: vec![IpType::V4],
                 })]
             }
         );
@@ -425,7 +429,7 @@ mod tests {
                         token: Some(String::from("dec0de")),
                         zone: String::from("example.com"),
                         records: vec![String::from("n.example.com")],
-                        ip_types: vec![],
+                        ip_types: vec![IpType::V4],
                     }),
                     DomainConfig::Cloudflare(CloudflareConfig {
                         email: Some(String::from("admin@example.com")),
@@ -436,7 +440,7 @@ mod tests {
                             String::from("n.example2.com"),
                             String::from("n2.example2.com")
                         ],
-                        ip_types: vec![],
+                        ip_types: vec![IpType::V4],
                     })
                 ]
             }
