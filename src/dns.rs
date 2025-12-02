@@ -10,20 +10,24 @@ pub struct DnsResolver {
 }
 
 impl DnsResolver {
-    pub async fn create_opendns() -> Result<Self, DnsError> {
+    pub async fn create_opendns(ip_type: IpType) -> Result<Self, DnsError> {
+        let ips = // OpenDNS nameservers:
+                // https://en.wikipedia.org/wiki/OpenDNS#Name_server_IP_addresses
+                match ip_type {
+                    IpType::V4 => [
+                        IpAddr::V4(Ipv4Addr::new(208, 67, 222, 222)),
+                        IpAddr::V4(Ipv4Addr::new(208, 67, 220, 220)),
+                    ],
+                    IpType::V6 => [
+                        IpAddr::V6(Ipv6Addr::new(0x2620, 0x119, 0x35, 0, 0, 0, 0, 0x35)),
+                        IpAddr::V6(Ipv6Addr::new(0x2620, 0x119, 0x53, 0, 0, 0, 0, 0x53)),
+                    ],
+                };
+
         let config = ResolverConfig::from_parts(
             None,
             vec![],
-            NameServerConfigGroup::from_ips_clear(
-                &[
-                    // OpenDNS nameservers:
-                    // https://en.wikipedia.org/wiki/OpenDNS#Name_server_IP_addresses
-                    IpAddr::V4(Ipv4Addr::new(208, 67, 222, 222)),
-                    IpAddr::V4(Ipv4Addr::new(208, 67, 220, 220)),
-                ],
-                53,
-                false,
-            ),
+            NameServerConfigGroup::from_ips_clear(&ips, 53, false),
         );
 
         Self::from_config(config).await
@@ -83,17 +87,18 @@ impl DnsResolver {
 #[derive(Debug)]
 struct OpenDnsResolver {
     resolver: DnsResolver,
+    ip_type: IpType,
 }
 
 impl OpenDnsResolver {
-    async fn create() -> Result<Self, DnsError> {
-        let resolver = DnsResolver::create_opendns().await?;
-        Ok(OpenDnsResolver { resolver })
+    async fn create(ip_type: IpType) -> Result<Self, DnsError> {
+        let resolver = DnsResolver::create_opendns(ip_type).await?;
+        Ok(OpenDnsResolver { resolver, ip_type })
     }
 
-    async fn wan_lookup(&self, ip_type: IpType) -> Result<IpAddr, DnsError> {
+    async fn wan_lookup(&self) -> Result<IpAddr, DnsError> {
         const DOMAIN: &str = "myip.opendns.com.";
-        match ip_type {
+        match self.ip_type {
             IpType::V4 => self.resolver.ipv4_lookup(DOMAIN).await.map(Into::into),
             IpType::V6 => self.resolver.ipv6_lookup(DOMAIN).await.map(Into::into),
         }
@@ -101,8 +106,8 @@ impl OpenDnsResolver {
 }
 
 pub async fn wan_lookup_ip(ip_type: IpType) -> Result<IpAddr, DnsError> {
-    let opendns = OpenDnsResolver::create().await?;
-    opendns.wan_lookup(ip_type).await
+    let opendns = OpenDnsResolver::create(ip_type).await?;
+    opendns.wan_lookup().await
 }
 
 #[cfg(test)]
