@@ -177,11 +177,15 @@ async fn main() {
     // Use a single HTTP client when updating dns records so that connections can be reused
     let http_client = reqwest::Client::new();
 
-    let mut ip_types: Vec<IpType> = config
-        .domains
-        .iter()
-        .flat_map(|d| d.get_ip_types())
-        .collect();
+    let mut ip_types: Vec<IpType> = if config.domains.is_empty() {
+        vec![IpType::V4, IpType::V6]
+    } else {
+        config
+            .domains
+            .iter()
+            .flat_map(|d| d.get_ip_types())
+            .collect()
+    };
     ip_types.sort_unstable();
     ip_types.dedup();
     let ip_types = ip_types;
