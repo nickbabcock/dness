@@ -103,20 +103,16 @@ async fn ipify_resolve_ip(client: &reqwest::Client, ip_type: IpType) -> Result<I
 }
 
 /// Resolves the WAN IP or exits with a non-zero status code
-async fn resolve_ip(client: &reqwest::Client, config: &DnsConfig, ip_type: IpType) -> IpAddr {
-    let res = match config.ip_resolver.to_ascii_lowercase().as_str() {
+async fn resolve_ip(
+    client: &reqwest::Client,
+    config: &DnsConfig,
+    ip_type: IpType,
+) -> Result<IpAddr, DnessError> {
+    match config.ip_resolver.to_ascii_lowercase().as_str() {
         "opendns" => wan_lookup_ip(ip_type).await.map_err(|x| x.into()),
         "ipify" => ipify_resolve_ip(client, ip_type).await,
         _ => {
             error!("unrecognized ip resolver: {}", config.ip_resolver);
-            std::process::exit(1)
-        }
-    };
-
-    match res {
-        Ok(c) => c,
-        Err(e) => {
-            log_err("could not successfully resolve IP", Box::new(e));
             std::process::exit(1)
         }
     }
@@ -190,14 +186,22 @@ async fn main() {
     ip_types.dedup();
     let ip_types = ip_types;
 
-    let addrs: Vec<(IpType, IpAddr)> =
+    let addrs: Vec<Option<IpAddr>> =
         futures::future::join_all(ip_types.iter().map(async |ip_type| {
-            let addr = resolve_ip(&http_client, &config, *ip_type).await;
             let start_resolve = Instant::now();
-            info!("resolved address to {} in {}", addr, elapsed(start_resolve));
-            (*ip_type, addr)
+            match resolve_ip(&http_client, &config, *ip_type).await {
+                Ok(addr) => {
+                    info!("resolved address to {} in {}", addr, elapsed(start_resolve));
+                    Some(addr)
+                }
+                Err(e) => {
+                    log_err("could not successfully resolve IP", Box::new(e));
+                    None
+                }
+            }
         }))
         .await;
+    let addrs: Vec<IpAddr> = addrs.iter().copied().flatten().collect();
 
     // Keep track of any failures in ensuring current DNS records. We don't want to fail on the
     // first error, as subsequent domains listed in the config can still be valid, but if there
@@ -207,8 +211,8 @@ async fn main() {
 
     for d in config.domains {
         let ip_types = d.get_ip_types();
-        for (ip_type, addr) in addrs.iter() {
-            if !ip_types.contains(ip_type) {
+        for addr in addrs.iter() {
+            if !ip_types.contains(&IpType::from(*addr)) {
                 continue;
             }
             let start_update = Instant::now();

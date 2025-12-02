@@ -5,6 +5,7 @@ use std::fmt;
 use std::fs::File;
 use std::io::Error as IoError;
 use std::io::Read;
+use std::net::IpAddr;
 use std::path::Path;
 use std::{collections::HashMap, error};
 
@@ -133,6 +134,15 @@ pub enum IpType {
     V4,
     #[serde(rename = "6")]
     V6,
+}
+
+impl From<IpAddr> for IpType {
+    fn from(addr: IpAddr) -> IpType {
+        match addr {
+            IpAddr::V4(_) => IpType::V4,
+            IpAddr::V6(_) => IpType::V6,
+        }
+    }
 }
 
 fn ipv4_only() -> Vec<IpType> {

@@ -310,11 +310,7 @@ impl CloudflareClient<'_> {
     }
 
     async fn update(&self, addr: IpAddr) -> Result<Updates, ClError> {
-        let ip_type = match addr {
-            IpAddr::V4(_) => IpType::V4,
-            IpAddr::V6(_) => IpType::V6,
-        };
-        let mut dns_records = self.paginate_domains(ip_type).await?;
+        let mut dns_records = self.paginate_domains(IpType::from(addr)).await?;
         let missing = self.log_missing_domains(&dns_records) as i32;
         let mut current = 0;
         let mut updated = 0;
