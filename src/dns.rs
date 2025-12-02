@@ -115,10 +115,13 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn opendns_lookup_ip_test() {
+    async fn opendns_lookup_ipv4_test() {
         // Heads up: this test requires internet connectivity
         match wan_lookup_ip(IpType::V4).await {
-            Ok(ip) => assert!(ip != Ipv4Addr::new(127, 0, 0, 1)),
+            Ok(ip) => {
+                assert!(ip.is_ipv4());
+                assert!(!ip.is_loopback());
+            }
             Err(e) => {
                 match e.kind.as_ref() {
                     DnsErrorKind::DnsResolve(e) => {
@@ -140,10 +143,46 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn cloudflare_test() {
+    async fn opendns_lookup_ipv6_test() {
+        // Heads up: this test requires internet connectivity
+        match wan_lookup_ip(IpType::V6).await {
+            Ok(ip) => {
+                assert!(ip.is_ipv6());
+                assert!(!ip.is_loopback());
+            }
+            Err(e) => {
+                match e.kind.as_ref() {
+                    DnsErrorKind::DnsResolve(e) => {
+                        match e.kind() {
+                            hickory_resolver::error::ResolveErrorKind::NoRecordsFound {
+                                ..
+                            } => {
+                                // This is fine, just means we're behind a CGNAT
+                            }
+                            _ => panic!("unexpected error: {}", e),
+                        }
+                    }
+                    DnsErrorKind::UnexpectedResponse(_) => {
+                        panic!("unexpected response: {}", e);
+                    }
+                }
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn cloudflare_lookup_ipv4_test() {
         // Heads up: this test requires internet connectivity
         let resolver = DnsResolver::create_cloudflare().await.unwrap();
         let ip = resolver.ipv4_lookup("example.com.").await.unwrap();
-        assert!(ip != Ipv4Addr::new(127, 0, 0, 1));
+        assert!(!ip.is_loopback());
+    }
+
+    #[tokio::test]
+    async fn cloudflare_lookup_ipv6_test() {
+        // Heads up: this test requires internet connectivity
+        let resolver = DnsResolver::create_cloudflare().await.unwrap();
+        let ip = resolver.ipv6_lookup("example.com.").await.unwrap();
+        assert!(!ip.is_loopback());
     }
 }

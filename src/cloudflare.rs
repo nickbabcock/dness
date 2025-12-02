@@ -475,8 +475,8 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_cloudflare_update_response() {
-        let json_str = &include_str!("../assets/cloudflare-update-response.json");
+    fn deserialize_cloudflare_update_a_response() {
+        let json_str = &include_str!("../assets/cloudflare-update-a-response.json");
         let response: CloudflareResponse<CloudflareDnsRecord> =
             serde_json::from_str(json_str).unwrap();
 
@@ -487,6 +487,27 @@ mod tests {
                     id: String::from("372e67954025e0ba6aaa6d586b9e0b59"),
                     name: String::from("example.com"),
                     content: String::from("198.51.100.4"),
+                }),
+                result_info: None,
+                success: true,
+                errors: vec![]
+            }
+        );
+    }
+
+    #[test]
+    fn deserialize_cloudflare_update_aaaa_response() {
+        let json_str = &include_str!("../assets/cloudflare-update-aaaa-response.json");
+        let response: CloudflareResponse<CloudflareDnsRecord> =
+            serde_json::from_str(json_str).unwrap();
+
+        assert_eq!(
+            response,
+            CloudflareResponse {
+                result: Some(CloudflareDnsRecord {
+                    id: String::from("372e67954025e0ba6aaa6d586b9e0b59"),
+                    name: String::from("example.com"),
+                    content: String::from("2600:1406:bc00:53::b81e:94ce"),
                 }),
                 result_info: None,
                 success: true,
