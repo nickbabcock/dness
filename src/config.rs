@@ -121,6 +121,14 @@ impl DomainConfig {
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
+pub enum IpType {
+    #[serde(rename = "4")]
+    V4,
+    #[serde(rename = "6")]
+    V6,
+}
+
+#[derive(Deserialize, Clone, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct CloudflareConfig {
     pub email: Option<String>,
@@ -128,6 +136,8 @@ pub struct CloudflareConfig {
     pub token: Option<String>,
     pub zone: String,
     pub records: Vec<String>,
+    #[serde(default)]
+    pub ip_types: Vec<IpType>,
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -291,7 +301,8 @@ mod tests {
                     key: None,
                     token: Some(String::from("dec0de")),
                     zone: String::from("example.com"),
-                    records: vec![String::from("n.example.com")]
+                    records: vec![String::from("n.example.com")],
+                    ip_types: vec![],
                 })]
             }
         );
@@ -360,7 +371,8 @@ mod tests {
                         key: None,
                         token: Some(String::from("dec0de")),
                         zone: String::from("example.com"),
-                        records: vec![String::from("n.example.com")]
+                        records: vec![String::from("n.example.com")],
+                        ip_types: vec![],
                     }),
                     DomainConfig::Cloudflare(CloudflareConfig {
                         email: Some(String::from("admin@example.com")),
@@ -370,7 +382,8 @@ mod tests {
                         records: vec![
                             String::from("n.example2.com"),
                             String::from("n2.example2.com")
-                        ]
+                        ],
+                        ip_types: vec![],
                     })
                 ]
             }
