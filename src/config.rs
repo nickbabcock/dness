@@ -309,6 +309,52 @@ mod tests {
     }
 
     #[test]
+    fn deserialize_config_ipv6() {
+        let toml_str = &include_str!("../assets/ipv6-config.toml");
+        let config: DnsConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(
+            config,
+            DnsConfig {
+                ip_resolver: String::from("opendns"),
+                log: LogConfig {
+                    level: LevelFilter::Info,
+                },
+                domains: vec![DomainConfig::Cloudflare(CloudflareConfig {
+                    email: None,
+                    key: None,
+                    token: Some(String::from("dec0de")),
+                    zone: String::from("example.com"),
+                    records: vec![String::from("n.example.com")],
+                    ip_types: vec![IpType::V6],
+                })]
+            }
+        );
+    }
+
+    #[test]
+    fn deserialize_config_dual_stack() {
+        let toml_str = &include_str!("../assets/dual-stack-config.toml");
+        let config: DnsConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(
+            config,
+            DnsConfig {
+                ip_resolver: String::from("opendns"),
+                log: LogConfig {
+                    level: LevelFilter::Info,
+                },
+                domains: vec![DomainConfig::Cloudflare(CloudflareConfig {
+                    email: None,
+                    key: None,
+                    token: Some(String::from("dec0de")),
+                    zone: String::from("example.com"),
+                    records: vec![String::from("n.example.com")],
+                    ip_types: vec![IpType::V4, IpType::V6],
+                })]
+            }
+        )
+    }
+
+    #[test]
     fn deserialize_config_godaddy() {
         let toml_str = &include_str!("../assets/godaddy-config.toml");
         let config: DomainConfig = toml::from_str(toml_str).unwrap();
