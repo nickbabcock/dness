@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::error;
 use std::fmt;
-use std::net::{IpAddr, Ipv4Addr};
+use std::net::IpAddr;
 
 trait CloudflareAuthorizer: fmt::Debug {
     fn with_auth(&self, request_builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder;
@@ -324,7 +324,7 @@ impl CloudflareClient<'_> {
             .filter(|x| self.records.contains(&x.name));
 
         for record in recs {
-            match record.content.parse::<Ipv4Addr>() {
+            match record.content.parse::<IpAddr>() {
                 Ok(ip) => {
                     if ip != addr {
                         updated += 1;
@@ -344,7 +344,7 @@ impl CloudflareClient<'_> {
                 }
                 Err(ref e) => {
                     updated += 1;
-                    warn!("could not parse domain {} address {} as ipv4 -- will replace it. Original error: {}", record.name, record.content, e);
+                    warn!("could not parse domain {} address {} -- will replace it. Original error: {}", record.name, record.content, e);
                     self.update_record(record, addr).await?;
 
                     info!(
