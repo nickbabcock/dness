@@ -3,7 +3,7 @@ use crate::core::Updates;
 use crate::dns::DnsResolver;
 use crate::errors::DnessError;
 use log::{info, warn};
-use std::net::Ipv4Addr;
+use std::net::{IpAddr, Ipv4Addr};
 
 #[derive(Debug)]
 pub struct HeProvider<'a> {
@@ -50,10 +50,13 @@ impl HeProvider<'_> {
 pub async fn update_domains(
     _client: &reqwest::Client,
     config: &HeConfig,
-    wan: Ipv4Addr,
+    wan: IpAddr,
 ) -> Result<Updates, DnessError> {
     // uses the same strategy as namecheap where we get the current records
     // via dns and check if they need to be updated
+    let IpAddr::V4(wan) = wan else {
+        unimplemented!("IPv6 not supported for He")
+    };
     let resolver = DnsResolver::create_cloudflare().await?;
     let he = HeProvider { config };
 
@@ -127,7 +130,7 @@ mod tests {
     async fn test_he_update() {
         let (tx, addr) = he_server!();
         let http_client = reqwest::Client::new();
-        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let new_ip = IpAddr::V4(Ipv4Addr::new(2, 2, 2, 2));
         let config = HeConfig {
             base_url: format!("http://{}", addr),
             hostname: String::from("example.com"),

@@ -1,11 +1,11 @@
-use crate::config::CloudflareConfig;
+use crate::config::{CloudflareConfig, IpType};
 use crate::core::Updates;
 use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::error;
 use std::fmt;
-use std::net::Ipv4Addr;
+use std::net::{IpAddr, Ipv4Addr};
 
 trait CloudflareAuthorizer: fmt::Debug {
     fn with_auth(&self, request_builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder;
@@ -234,7 +234,7 @@ impl CloudflareClient<'_> {
 
     // Grab all the sub domains in the zone, but since there can be many of them, cloudflare
     // paginates the results.
-    async fn paginate_domains(&self) -> Result<Vec<CloudflareDnsRecord>, ClError> {
+    async fn paginate_domains(&self, ip_type: IpType) -> Result<Vec<CloudflareDnsRecord>, ClError> {
         let mut done = false;
         let mut page = 0;
         let mut dns_records: Vec<CloudflareDnsRecord> = Vec::new();
@@ -244,6 +244,11 @@ impl CloudflareClient<'_> {
             self.zone_id
         );
 
+        let ip_type = match ip_type {
+            IpType::V4 => "A",
+            IpType::V6 => "AAAA",
+        };
+
         while !done {
             page += 1;
 
@@ -252,7 +257,7 @@ impl CloudflareClient<'_> {
                 .client
                 .get(&record_url)
                 .query(&[("page", page)])
-                .query(&[("type", "A")]);
+                .query(&[("type", ip_type)]);
 
             request_builder = self.authorizer.with_auth(request_builder);
 
@@ -304,8 +309,12 @@ impl CloudflareClient<'_> {
         crate::core::log_missing_domains(&self.records, &actual, "cloudflare", &self.zone_name)
     }
 
-    async fn update(&self, addr: Ipv4Addr) -> Result<Updates, ClError> {
-        let mut dns_records = self.paginate_domains().await?;
+    async fn update(&self, addr: IpAddr) -> Result<Updates, ClError> {
+        let ip_type = match addr {
+            IpAddr::V4(_) => IpType::V4,
+            IpAddr::V6(_) => IpType::V6,
+        };
+        let mut dns_records = self.paginate_domains(ip_type).await?;
         let missing = self.log_missing_domains(&dns_records) as i32;
         let mut current = 0;
         let mut updated = 0;
@@ -356,7 +365,7 @@ impl CloudflareClient<'_> {
     async fn update_record(
         &self,
         record: &CloudflareDnsRecord,
-        addr: Ipv4Addr,
+        addr: IpAddr,
     ) -> Result<(), ClError> {
         let url = format!(
             "https://api.cloudflare.com/client/v4/zones/{}/dns_records/{}",
@@ -409,7 +418,7 @@ impl CloudflareClient<'_> {
 pub async fn update_domains(
     client: &reqwest::Client,
     config: &CloudflareConfig,
-    addr: Ipv4Addr,
+    addr: IpAddr,
 ) -> Result<Updates, ClError> {
     CloudflareClient::create(client, config)
         .await?

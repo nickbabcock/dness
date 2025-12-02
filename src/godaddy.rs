@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap as Map;
 use std::collections::HashSet;
+use std::net::IpAddr;
 use std::net::Ipv4Addr;
 
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
@@ -134,8 +135,11 @@ impl GoClient<'_> {
 pub async fn update_domains(
     client: &reqwest::Client,
     config: &GoDaddyConfig,
-    addr: Ipv4Addr,
+    addr: IpAddr,
 ) -> Result<Updates, DnessError> {
+    let IpAddr::V4(addr) = addr else {
+        unimplemented!("IPv6 not supported for GoDaddy")
+    };
     let go_client = GoClient {
         base_url: config.base_url.trim_end_matches('/').to_string(),
         domain: config.domain.clone(),
@@ -240,7 +244,7 @@ mod tests {
     async fn test_godaddy_unparseable_ipv4() {
         let (tx, addr) = godaddy_rouille_server!();
         let http_client = reqwest::Client::new();
-        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let new_ip = IpAddr::V4(Ipv4Addr::new(2, 2, 2, 2));
         let config = GoDaddyConfig {
             base_url: format!("http://{}", addr),
             domain: String::from("domain-1.com"),
@@ -266,7 +270,7 @@ mod tests {
     async fn test_godaddy_grabbag() {
         let (tx, addr) = godaddy_rouille_server!();
         let http_client = reqwest::Client::new();
-        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let new_ip = IpAddr::V4(Ipv4Addr::new(2, 2, 2, 2));
         let config = GoDaddyConfig {
             base_url: format!("http://{}", addr),
             domain: String::from("domain-2.com"),

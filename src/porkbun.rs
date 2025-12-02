@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap as Map;
 use std::collections::HashSet;
+use std::net::IpAddr;
 use std::net::Ipv4Addr;
 
 const VALID_RECORD_TYPES: [&str; 1] = ["A"];
@@ -176,8 +177,11 @@ impl PorkbunClient<'_> {
 pub async fn update_domains(
     client: &reqwest::Client,
     config: &PorkbunConfig,
-    addr: Ipv4Addr,
+    addr: IpAddr,
 ) -> Result<Updates, DnessError> {
+    let IpAddr::V4(addr) = addr else {
+        unimplemented!("IPv6 not supported for Porkbun")
+    };
     let porkbun_client = PorkbunClient {
         base_url: config.base_url.trim_end_matches('/').to_string(),
         domain: config.domain.clone(),
@@ -304,7 +308,7 @@ mod tests {
     async fn test_porkbun_update() {
         let (tx, addr) = porkbun_rouille_server!();
         let http_client = reqwest::Client::new();
-        let new_ip = Ipv4Addr::new(2, 2, 2, 1);
+        let new_ip = IpAddr::V4(Ipv4Addr::new(2, 2, 2, 1));
         let config = PorkbunConfig {
             base_url: format!("http://{}/api/json/v3", addr),
             domain: String::from("example.com"),
@@ -330,7 +334,7 @@ mod tests {
     async fn test_porkbun_current() {
         let (tx, addr) = porkbun_rouille_server!();
         let http_client = reqwest::Client::new();
-        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let new_ip = IpAddr::V4(Ipv4Addr::new(2, 2, 2, 2));
         let config = PorkbunConfig {
             base_url: format!("http://{}/api/json/v3", addr),
             domain: String::from("example.com"),
@@ -356,7 +360,7 @@ mod tests {
     async fn test_porkbun_missing() {
         let (tx, addr) = porkbun_rouille_server!();
         let http_client = reqwest::Client::new();
-        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let new_ip = IpAddr::V4(Ipv4Addr::new(2, 2, 2, 2));
         let config = PorkbunConfig {
             base_url: format!("http://{}/api/json/v3", addr),
             domain: String::from("example.com"),

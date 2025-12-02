@@ -1,6 +1,6 @@
 use crate::{config::NoIpConfig, core::Updates, dns::DnsResolver, errors::DnessError};
 use log::{info, warn};
-use std::net::Ipv4Addr;
+use std::net::{IpAddr, Ipv4Addr};
 
 #[derive(Debug)]
 pub struct NoIpProvider<'a> {
@@ -44,8 +44,11 @@ impl NoIpProvider<'_> {
 pub async fn update_domains(
     client: &reqwest::Client,
     config: &NoIpConfig,
-    wan: Ipv4Addr,
+    wan: IpAddr,
 ) -> Result<Updates, DnessError> {
+    let IpAddr::V4(wan) = wan else {
+        unimplemented!("IPv6 not supported for NoIp")
+    };
     let resolver = DnsResolver::create_cloudflare().await?;
     let dns_query = format!("{}.", &config.hostname);
     let response = resolver.ipv4_lookup(&dns_query).await;
@@ -111,7 +114,7 @@ mod tests {
     async fn test_noip_update() {
         let (tx, addr) = noip_server!();
         let http_client = reqwest::Client::new();
-        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let new_ip = IpAddr::V4(Ipv4Addr::new(2, 2, 2, 2));
         let config = NoIpConfig {
             base_url: format!("http://{}", addr),
             hostname: String::from("example.com"),

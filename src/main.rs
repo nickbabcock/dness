@@ -16,7 +16,7 @@ mod porkbun;
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
-use crate::config::{parse_config, DnsConfig, DomainConfig};
+use crate::config::{parse_config, DnsConfig, DomainConfig, IpType};
 use crate::core::Updates;
 use crate::dns::wan_lookup_ip;
 use crate::errors::DnessError;
@@ -25,7 +25,7 @@ use clap::Parser;
 use log::{error, info, LevelFilter};
 use std::error;
 use std::fmt::Write;
-use std::net::Ipv4Addr;
+use std::net::IpAddr;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
@@ -80,8 +80,11 @@ fn init_configuration<T: AsRef<Path>>(file: Option<T>) -> DnsConfig {
     }
 }
 
-async fn ipify_resolve_ip(client: &reqwest::Client) -> Result<Ipv4Addr, DnessError> {
-    let ipify_url = "https://api.ipify.org/";
+async fn ipify_resolve_ip(client: &reqwest::Client, ip_type: IpType) -> Result<IpAddr, DnessError> {
+    let ipify_url = match ip_type {
+        IpType::V4 => "https://api.ipify.org/",
+        IpType::V6 => "https://api6.ipify.org/",
+    };
     let ip_text = client
         .get(ipify_url)
         .send()
@@ -94,16 +97,16 @@ async fn ipify_resolve_ip(client: &reqwest::Client) -> Result<Ipv4Addr, DnessErr
         .map_err(|e| DnessError::deserialize(ipify_url, "ipify get ip", e))?;
 
     let ip = ip_text
-        .parse::<Ipv4Addr>()
+        .parse::<IpAddr>()
         .map_err(|_| DnessError::message(format!("unable to parse {} as an ip", &ip_text)))?;
     Ok(ip)
 }
 
 /// Resolves the WAN IP or exits with a non-zero status code
-async fn resolve_ip(client: &reqwest::Client, config: &DnsConfig) -> Ipv4Addr {
+async fn resolve_ip(client: &reqwest::Client, config: &DnsConfig, ip_type: IpType) -> IpAddr {
     let res = match config.ip_resolver.to_ascii_lowercase().as_str() {
-        "opendns" => wan_lookup_ip().await.map_err(|x| x.into()),
-        "ipify" => ipify_resolve_ip(client).await,
+        "opendns" => wan_lookup_ip(ip_type).await.map_err(|x| x.into()),
+        "ipify" => ipify_resolve_ip(client, ip_type).await,
         _ => {
             error!("unrecognized ip resolver: {}", config.ip_resolver);
             std::process::exit(1)
@@ -127,7 +130,7 @@ fn elapsed(start: Instant) -> String {
 
 async fn update_provider(
     http_client: &reqwest::Client,
-    addr: Ipv4Addr,
+    addr: IpAddr,
     domain: &DomainConfig,
 ) -> Result<Updates, Box<dyn std::error::Error>> {
     match domain {
@@ -174,9 +177,23 @@ async fn main() {
     // Use a single HTTP client when updating dns records so that connections can be reused
     let http_client = reqwest::Client::new();
 
-    let start_resolve = Instant::now();
-    let addr = resolve_ip(&http_client, &config).await;
-    info!("resolved address to {} in {}", addr, elapsed(start_resolve));
+    let mut ip_types: Vec<IpType> = config
+        .domains
+        .iter()
+        .flat_map(|d| d.get_ip_types())
+        .collect();
+    ip_types.sort_unstable();
+    ip_types.dedup();
+    let ip_types = ip_types;
+
+    let addrs: Vec<(IpType, IpAddr)> =
+        futures::future::join_all(ip_types.iter().map(async |ip_type| {
+            let addr = resolve_ip(&http_client, &config, *ip_type).await;
+            let start_resolve = Instant::now();
+            info!("resolved address to {} in {}", addr, elapsed(start_resolve));
+            (*ip_type, addr)
+        }))
+        .await;
 
     // Keep track of any failures in ensuring current DNS records. We don't want to fail on the
     // first error, as subsequent domains listed in the config can still be valid, but if there
@@ -185,21 +202,27 @@ async fn main() {
     let mut total_updates = Updates::default();
 
     for d in config.domains {
-        let start_update = Instant::now();
-        match update_provider(&http_client, addr, &d).await {
-            Ok(updates) => {
-                info!(
-                    "processed {}: ({}) in {}",
-                    d.display_name(),
-                    updates,
-                    elapsed(start_update)
-                );
-                total_updates += updates;
+        let ip_types = d.get_ip_types();
+        for (ip_type, addr) in addrs.iter() {
+            if !ip_types.contains(ip_type) {
+                continue;
             }
-            Err(e) => {
-                failure = true;
-                let msg = format!("could not update {}", d.display_name(),);
-                log_err(&msg, e);
+            let start_update = Instant::now();
+            match update_provider(&http_client, *addr, &d).await {
+                Ok(updates) => {
+                    info!(
+                        "processed {}: ({}) in {}",
+                        d.display_name(),
+                        updates,
+                        elapsed(start_update)
+                    );
+                    total_updates += updates;
+                }
+                Err(e) => {
+                    failure = true;
+                    let msg = format!("could not update {}", d.display_name(),);
+                    log_err(&msg, e);
+                }
             }
         }
     }

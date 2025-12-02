@@ -118,9 +118,16 @@ impl DomainConfig {
             DomainConfig::Porkbun(c) => format!("{} ({})", c.domain, "porkbun"),
         }
     }
+
+    pub fn get_ip_types(&self) -> Vec<IpType> {
+        match self {
+            DomainConfig::Cloudflare(cloudflare_config) => cloudflare_config.ip_types.clone(),
+            _ => vec![IpType::V4],
+        }
+    }
 }
 
-#[derive(Deserialize, Clone, PartialEq, Debug)]
+#[derive(Deserialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum IpType {
     #[serde(rename = "4")]
     V4,

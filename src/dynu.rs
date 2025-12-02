@@ -3,7 +3,7 @@ use crate::core::Updates;
 use crate::dns::DnsResolver;
 use crate::errors::DnessError;
 use log::{info, warn};
-use std::net::Ipv4Addr;
+use std::net::{IpAddr, Ipv4Addr};
 
 #[derive(Debug)]
 pub struct DynuProvider<'a> {
@@ -55,8 +55,11 @@ impl DynuProvider<'_> {
 pub async fn update_domains(
     client: &reqwest::Client,
     config: &DynuConfig,
-    wan: Ipv4Addr,
+    wan: IpAddr,
 ) -> Result<Updates, DnessError> {
+    let IpAddr::V4(wan) = wan else {
+        unimplemented!("IPv6 not supported for Dynu")
+    };
     let resolver = DnsResolver::create_cloudflare().await?;
     let dynu_provider = DynuProvider { client, config };
 
@@ -129,7 +132,7 @@ mod tests {
     async fn test_dynu_update() {
         let (tx, addr) = dynu_server!();
         let http_client = reqwest::Client::new();
-        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let new_ip = IpAddr::V4(Ipv4Addr::new(2, 2, 2, 2));
         let config = DynuConfig {
             base_url: format!("http://{}", addr),
             hostname: String::from("example.com"),

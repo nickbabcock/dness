@@ -1,7 +1,8 @@
+use crate::config::IpType;
 use crate::errors::{DnsError, DnsErrorKind};
-use std::net::{IpAddr, Ipv4Addr};
 use hickory_resolver::config::{NameServerConfigGroup, ResolverConfig, ResolverOpts};
 use hickory_resolver::TokioAsyncResolver;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 #[derive(Debug)]
 pub struct DnsResolver {
@@ -57,6 +58,26 @@ impl DnsResolver {
                 kind: Box::new(DnsErrorKind::UnexpectedResponse(0)),
             })
     }
+
+    pub async fn ipv6_lookup(&self, host: &str) -> Result<Ipv6Addr, DnsError> {
+        // When we query opendns for the special domain of "myip.opendns.com" it will return to us
+        // our IP
+        let response = self
+            .resolver
+            .ipv6_lookup(host)
+            .await
+            .map_err(|e| DnsError {
+                kind: Box::new(DnsErrorKind::DnsResolve(e)),
+            })?;
+
+        response
+            .iter()
+            .next()
+            .map(|address| address.0)
+            .ok_or_else(|| DnsError {
+                kind: Box::new(DnsErrorKind::UnexpectedResponse(0)),
+            })
+    }
 }
 
 #[derive(Debug)]
@@ -70,14 +91,18 @@ impl OpenDnsResolver {
         Ok(OpenDnsResolver { resolver })
     }
 
-    async fn wan_lookup(&self) -> Result<Ipv4Addr, DnsError> {
-        self.resolver.ipv4_lookup("myip.opendns.com.").await
+    async fn wan_lookup(&self, ip_type: IpType) -> Result<IpAddr, DnsError> {
+        const DOMAIN: &str = "myip.opendns.com.";
+        match ip_type {
+            IpType::V4 => self.resolver.ipv4_lookup(DOMAIN).await.map(Into::into),
+            IpType::V6 => self.resolver.ipv6_lookup(DOMAIN).await.map(Into::into),
+        }
     }
 }
 
-pub async fn wan_lookup_ip() -> Result<Ipv4Addr, DnsError> {
+pub async fn wan_lookup_ip(ip_type: IpType) -> Result<IpAddr, DnsError> {
     let opendns = OpenDnsResolver::create().await?;
-    opendns.wan_lookup().await
+    opendns.wan_lookup(ip_type).await
 }
 
 #[cfg(test)]
@@ -87,7 +112,7 @@ mod tests {
     #[tokio::test]
     async fn opendns_lookup_ip_test() {
         // Heads up: this test requires internet connectivity
-        match wan_lookup_ip().await {
+        match wan_lookup_ip(IpType::V4).await {
             Ok(ip) => assert!(ip != Ipv4Addr::new(127, 0, 0, 1)),
             Err(e) => {
                 match e.kind.as_ref() {

@@ -20,6 +20,7 @@ tokio = { version = "1", features = ["macros"] }
 openssl = { version = '0.10', optional = true }
 handlebars = "6.1"
 clap = { version = "4.4.6", features = ["derive"] }
+futures = "0.3"
 
 [target.'cfg(target_env = "musl")'.dependencies]
 mimalloc = "0.1.43"
@@ -57,9 +58,25 @@ features = ["vendored-openssl"]
 provides = "dness"
 conflicts = "dness-musl"
 assets = [
-    ["target/release/dness", "usr/bin/dness", "755"],
-    ["assets/bare-config.toml", "etc/dness/dness.conf", "644"],
-    ["assets/dness.service", "etc/systemd/system/dness.service", "644"],
-    ["assets/dness.timer", "etc/systemd/system/dness.timer", "644"]
+    [
+        "target/release/dness",
+        "usr/bin/dness",
+        "755",
+    ],
+    [
+        "assets/bare-config.toml",
+        "etc/dness/dness.conf",
+        "644",
+    ],
+    [
+        "assets/dness.service",
+        "etc/systemd/system/dness.service",
+        "644",
+    ],
+    [
+        "assets/dness.timer",
+        "etc/systemd/system/dness.timer",
+        "644",
+    ],
 ]
 conf-files = ["/etc/dness/dness.conf", "/etc/dness/dness.env"]
