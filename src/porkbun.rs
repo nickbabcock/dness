@@ -180,7 +180,9 @@ pub async fn update_domains(
     addr: IpAddr,
 ) -> Result<Updates, DnessError> {
     let IpAddr::V4(addr) = addr else {
-        unimplemented!("IPv6 not supported for Porkbun")
+        return Err(DnessError::message(String::from(
+            "IPv6 not supported for Porkbun",
+        )));
     };
     let porkbun_client = PorkbunClient {
         base_url: config.base_url.trim_end_matches('/').to_string(),

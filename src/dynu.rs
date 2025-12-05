@@ -58,7 +58,9 @@ pub async fn update_domains(
     wan: IpAddr,
 ) -> Result<Updates, DnessError> {
     let IpAddr::V4(wan) = wan else {
-        unimplemented!("IPv6 not supported for Dynu")
+        return Err(DnessError::message(String::from(
+            "IPv6 not supported for Dynu",
+        )));
     };
     let resolver = DnsResolver::create_cloudflare().await?;
     let dynu_provider = DynuProvider { client, config };

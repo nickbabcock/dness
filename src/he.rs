@@ -55,7 +55,9 @@ pub async fn update_domains(
     // uses the same strategy as namecheap where we get the current records
     // via dns and check if they need to be updated
     let IpAddr::V4(wan) = wan else {
-        unimplemented!("IPv6 not supported for He")
+        return Err(DnessError::message(String::from(
+            "IPv6 not supported for He",
+        )));
     };
     let resolver = DnsResolver::create_cloudflare().await?;
     let he = HeProvider { config };

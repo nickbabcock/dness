@@ -47,7 +47,9 @@ pub async fn update_domains(
     wan: IpAddr,
 ) -> Result<Updates, DnessError> {
     let IpAddr::V4(wan) = wan else {
-        unimplemented!("IPv6 not supported for NoIp")
+        return Err(DnessError::message(String::from(
+            "IPv6 not supported for NoIp",
+        )));
     };
     let resolver = DnsResolver::create_cloudflare().await?;
     let dns_query = format!("{}.", &config.hostname);

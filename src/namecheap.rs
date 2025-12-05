@@ -60,7 +60,9 @@ pub async fn update_domains(
     // any issues with setting the namecheap record to an unchanged value, but it is less than
     // ideal. Namecheap does have a dns api that may be worth exploring.
     let IpAddr::V4(wan) = wan else {
-        unimplemented!("IPv6 not supported for Namecheap")
+        return Err(DnessError::message(String::from(
+            "IPv6 not supported for Namecheap",
+        )));
     };
     let resolver = DnsResolver::create_cloudflare().await?;
     let namecheap = NamecheapProvider { client, config };
