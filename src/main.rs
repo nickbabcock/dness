@@ -186,6 +186,11 @@ async fn main() {
     ip_types.dedup();
     let ip_types = ip_types;
 
+    // Keep track of any failures in ensuring current DNS records. We don't want to fail on the
+    // first error, as subsequent domains listed in the config can still be valid, but if there
+    // were any failures, we still need to exit with a non-zero exit code
+    let mut failure = false;
+
     let addrs: Vec<Option<IpAddr>> =
         futures::future::join_all(ip_types.iter().map(async |ip_type| {
             let start_resolve = Instant::now();
@@ -201,12 +206,11 @@ async fn main() {
             }
         }))
         .await;
+    if addrs.iter().any(Option::is_none) {
+        failure = true;
+    }
     let addrs: Vec<IpAddr> = addrs.iter().copied().flatten().collect();
 
-    // Keep track of any failures in ensuring current DNS records. We don't want to fail on the
-    // first error, as subsequent domains listed in the config can still be valid, but if there
-    // were any failures, we still need to exit with a non-zero exit code
-    let mut failure = false;
     let mut total_updates = Updates::default();
 
     for d in config.domains {
