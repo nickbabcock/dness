@@ -174,7 +174,7 @@ async fn main() {
     let http_client = reqwest::Client::new();
 
     let mut ip_types: Vec<IpType> = if config.domains.is_empty() {
-        vec![IpType::V4, IpType::V6]
+        vec![IpType::V4]
     } else {
         config
             .domains
