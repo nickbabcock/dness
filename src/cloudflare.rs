@@ -244,11 +244,6 @@ impl CloudflareClient<'_> {
             self.zone_id
         );
 
-        let ip_type = match ip_type {
-            IpType::V4 => "A",
-            IpType::V6 => "AAAA",
-        };
-
         while !done {
             page += 1;
 
@@ -257,7 +252,7 @@ impl CloudflareClient<'_> {
                 .client
                 .get(&record_url)
                 .query(&[("page", page)])
-                .query(&[("type", ip_type)]);
+                .query(&[("type", ip_type.record_type())]);
 
             request_builder = self.authorizer.with_auth(request_builder);
 

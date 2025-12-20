@@ -122,7 +122,8 @@ impl DomainConfig {
 
     pub fn get_ip_types(&self) -> Vec<IpType> {
         match self {
-            DomainConfig::Cloudflare(cloudflare_config) => cloudflare_config.ip_types.clone(),
+            DomainConfig::Cloudflare(c) => c.ip_types.clone(),
+            DomainConfig::GoDaddy(c) => c.ip_types.clone(),
             _ => vec![IpType::V4],
         }
     }
@@ -134,6 +135,15 @@ pub enum IpType {
     V4,
     #[serde(rename = "6")]
     V6,
+}
+
+impl IpType {
+    pub fn record_type(&self) -> &str {
+        match self {
+            IpType::V4 => "A",
+            IpType::V6 => "AAAA",
+        }
+    }
 }
 
 impl From<IpAddr> for IpType {
@@ -170,6 +180,8 @@ pub struct GoDaddyConfig {
     pub secret: String,
     pub domain: String,
     pub records: Vec<String>,
+    #[serde(default = "ipv4_only")]
+    pub ip_types: Vec<IpType>,
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -386,7 +398,8 @@ mod tests {
                 domain: String::from("example.com"),
                 key: String::from("abc123"),
                 secret: String::from("ef"),
-                records: vec![String::from("@")]
+                records: vec![String::from("@")],
+                ip_types: vec![IpType::V4]
             })
         );
     }
