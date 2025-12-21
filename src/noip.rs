@@ -1,6 +1,6 @@
 use crate::{config::NoIpConfig, core::Updates, dns::DnsResolver, errors::DnessError};
 use log::{info, warn};
-use std::net::{IpAddr, Ipv4Addr};
+use std::net::IpAddr;
 
 #[derive(Debug)]
 pub struct NoIpProvider<'a> {
@@ -10,7 +10,7 @@ pub struct NoIpProvider<'a> {
 
 impl NoIpProvider<'_> {
     /// https://www.noip.com/integrate/request
-    pub async fn update_domain(&self, wan: Ipv4Addr) -> Result<(), DnessError> {
+    pub async fn update_domain(&self, wan: IpAddr) -> Result<(), DnessError> {
         let base = self.config.base_url.trim_end_matches('/').to_string();
         let get_url = format!("{}/nic/update", base);
         let response = self
@@ -46,14 +46,9 @@ pub async fn update_domains(
     config: &NoIpConfig,
     wan: IpAddr,
 ) -> Result<Updates, DnessError> {
-    let IpAddr::V4(wan) = wan else {
-        return Err(DnessError::message(String::from(
-            "IPv6 not supported for NoIp",
-        )));
-    };
     let resolver = DnsResolver::create_cloudflare().await?;
     let dns_query = format!("{}.", &config.hostname);
-    let response = resolver.ipv4_lookup(&dns_query).await;
+    let response = resolver.ip_lookup(&dns_query, wan.into()).await;
     let provider = NoIpProvider { client, config };
     match response {
         Ok(ip) => {
@@ -88,6 +83,8 @@ pub async fn update_domains(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::IpType;
+    use std::net::Ipv4Addr;
 
     macro_rules! noip_server {
         () => {{
@@ -122,6 +119,7 @@ mod tests {
             hostname: String::from("example.com"),
             username: String::from("me@example.com"),
             password: String::from("my-pass"),
+            ip_types: vec![IpType::V4],
         };
 
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();

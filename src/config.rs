@@ -125,6 +125,7 @@ impl DomainConfig {
             DomainConfig::Cloudflare(c) => c.ip_types.clone(),
             DomainConfig::GoDaddy(c) => c.ip_types.clone(),
             DomainConfig::He(c) => c.ip_types.clone(),
+            DomainConfig::NoIp(c) => c.ip_types.clone(),
             DomainConfig::Dynu(c) => c.ip_types.clone(),
             _ => vec![IpType::V4],
         }
@@ -216,6 +217,8 @@ pub struct NoIpConfig {
     pub username: String,
     pub password: String,
     pub hostname: String,
+    #[serde(default = "ipv4_only")]
+    pub ip_types: Vec<IpType>,
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -511,6 +514,7 @@ mod tests {
                 username: String::from("myemail@example.org"),
                 hostname: String::from("dnesstest.hopto.org"),
                 password: String::from("super_secret_password"),
+                ip_types: vec![IpType::V4],
             })
         );
     }
