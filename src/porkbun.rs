@@ -1,3 +1,4 @@
+use crate::config::IpType;
 use crate::config::PorkbunConfig;
 use crate::core::Updates;
 use crate::errors::DnessError;
@@ -7,9 +8,6 @@ use serde_json::Value;
 use std::collections::BTreeMap as Map;
 use std::collections::HashSet;
 use std::net::IpAddr;
-use std::net::Ipv4Addr;
-
-const VALID_RECORD_TYPES: [&str; 1] = ["A"];
 
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 struct PorkbunResponse {
@@ -72,7 +70,7 @@ impl PorkbunClient<'_> {
         crate::core::log_missing_domains(&self.records, &actual, "Porkbun", &self.domain)
     }
 
-    async fn fetch_records(&self) -> Result<Vec<PorkbunRecord>, DnessError> {
+    async fn fetch_records(&self, ip_type: IpType) -> Result<Vec<PorkbunRecord>, DnessError> {
         let post_url = format!("{}/dns/retrieve/{}", self.base_url, self.domain);
         let response = self
             .client
@@ -91,16 +89,12 @@ impl PorkbunClient<'_> {
             .map_err(|e| DnessError::deserialize(&post_url, "porkbun fetch records", e))?
             .records
             .into_iter()
-            .filter(|r| VALID_RECORD_TYPES.contains(&r.r#type.as_str()))
+            .filter(|r| r.r#type == ip_type.record_type())
             .collect();
         Ok(response)
     }
 
-    async fn update_record(
-        &self,
-        record: &PorkbunRecord,
-        addr: Ipv4Addr,
-    ) -> Result<(), DnessError> {
+    async fn update_record(&self, record: &PorkbunRecord, addr: IpAddr) -> Result<(), DnessError> {
         let post_url = format!("{}/dns/edit/{}/{}", self.base_url, self.domain, record.id);
 
         self.client
@@ -125,11 +119,11 @@ impl PorkbunClient<'_> {
     async fn ensure_current_ip(
         &self,
         record: &PorkbunRecord,
-        addr: Ipv4Addr,
+        addr: IpAddr,
     ) -> Result<Updates, DnessError> {
         let mut current = 0;
         let mut updated = 0;
-        match record.content.parse::<Ipv4Addr>() {
+        match record.content.parse::<IpAddr>() {
             Ok(ip) => {
                 if ip != addr {
                     updated += 1;
@@ -179,11 +173,6 @@ pub async fn update_domains(
     config: &PorkbunConfig,
     addr: IpAddr,
 ) -> Result<Updates, DnessError> {
-    let IpAddr::V4(addr) = addr else {
-        return Err(DnessError::message(String::from(
-            "IPv6 not supported for Porkbun",
-        )));
-    };
     let porkbun_client = PorkbunClient {
         base_url: config.base_url.trim_end_matches('/').to_string(),
         domain: config.domain.clone(),
@@ -205,7 +194,7 @@ pub async fn update_domains(
         client,
     };
 
-    let records = porkbun_client.fetch_records().await?;
+    let records = porkbun_client.fetch_records(addr.into()).await?;
     let missing = porkbun_client.log_missing_domains(&records) as i32;
     let mut summary = Updates {
         missing,
@@ -227,6 +216,8 @@ pub async fn update_domains(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::IpType;
+    use std::net::Ipv4Addr;
 
     #[test]
     fn deserialize_porkbun_response() {
@@ -317,6 +308,7 @@ mod tests {
             key: String::from("key-1"),
             secret: String::from("secret-1"),
             records: vec![String::from("@"), String::from("sub")],
+            ip_types: vec![IpType::V4],
         };
 
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
@@ -343,6 +335,7 @@ mod tests {
             key: String::from("key-1"),
             secret: String::from("secret-1"),
             records: vec![String::from("@"), String::from("sub")],
+            ip_types: vec![IpType::V4],
         };
 
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
@@ -369,6 +362,7 @@ mod tests {
             key: String::from("key-1"),
             secret: String::from("secret-1"),
             records: vec![String::from("@"), String::from("sub"), String::from("sub2")],
+            ip_types: vec![IpType::V4],
         };
 
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();

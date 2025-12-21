@@ -124,10 +124,11 @@ impl DomainConfig {
         match self {
             DomainConfig::Cloudflare(c) => c.ip_types.clone(),
             DomainConfig::GoDaddy(c) => c.ip_types.clone(),
+            DomainConfig::Namecheap(_) => vec![IpType::V4],
             DomainConfig::He(c) => c.ip_types.clone(),
             DomainConfig::NoIp(c) => c.ip_types.clone(),
             DomainConfig::Dynu(c) => c.ip_types.clone(),
-            _ => vec![IpType::V4],
+            DomainConfig::Porkbun(c) => c.ip_types.clone(),
         }
     }
 }
@@ -243,6 +244,8 @@ pub struct PorkbunConfig {
     pub key: String,
     pub secret: String,
     pub records: Vec<String>,
+    #[serde(default = "ipv4_only")]
+    pub ip_types: Vec<IpType>,
 }
 
 fn godaddy_base_url() -> String {
