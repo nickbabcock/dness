@@ -1,9 +1,9 @@
-use crate::config::DynuConfig;
+use crate::config::{DynuConfig, IpType};
 use crate::core::Updates;
 use crate::dns::DnsResolver;
 use crate::errors::DnessError;
 use log::{info, warn};
-use std::net::{IpAddr, Ipv4Addr};
+use std::net::IpAddr;
 
 #[derive(Debug)]
 pub struct DynuProvider<'a> {
@@ -12,13 +12,21 @@ pub struct DynuProvider<'a> {
 }
 
 impl DynuProvider<'_> {
-    pub async fn update_domain(&self, host: &str, wan: Ipv4Addr) -> Result<(), DnessError> {
+    pub async fn update_domain(&self, host: &str, wan: IpAddr) -> Result<(), DnessError> {
         let base = self.config.base_url.trim_end_matches('/').to_string();
         let get_url = format!("{}/nic/update", base);
-        let mut params = vec![
-            ("hostname", self.config.hostname.clone()),
-            ("myip", wan.to_string()),
-        ];
+        let mut params = vec![("hostname", self.config.hostname.clone())];
+
+        match wan {
+            IpAddr::V4(ipv4_addr) => {
+                params.push(("myip", ipv4_addr.to_string()));
+                params.push(("myipv6", "no".to_owned()))
+            }
+            IpAddr::V6(ipv6_addr) => {
+                params.push(("myip", "no".to_owned()));
+                params.push(("myipv6", ipv6_addr.to_string()))
+            }
+        }
 
         if host != "@" {
             params.push(("alias", String::from(host)));
@@ -57,11 +65,6 @@ pub async fn update_domains(
     config: &DynuConfig,
     wan: IpAddr,
 ) -> Result<Updates, DnessError> {
-    let IpAddr::V4(wan) = wan else {
-        return Err(DnessError::message(String::from(
-            "IPv6 not supported for Dynu",
-        )));
-    };
     let resolver = DnsResolver::create_cloudflare().await?;
     let dynu_provider = DynuProvider { client, config };
 
@@ -74,7 +77,10 @@ pub async fn update_domains(
             format!("{}.{}.", record, config.hostname)
         };
 
-        let response = resolver.ipv4_lookup(&dns_query).await;
+        let response = match IpType::from(wan) {
+            IpType::V4 => resolver.ipv4_lookup(&dns_query).await.map(IpAddr::V4),
+            IpType::V6 => resolver.ipv6_lookup(&dns_query).await.map(IpAddr::V6),
+        };
 
         match response {
             Ok(ip) => {
@@ -106,6 +112,7 @@ pub async fn update_domains(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::net::Ipv4Addr;
 
     macro_rules! dynu_server {
         () => {{
@@ -141,6 +148,7 @@ mod tests {
             username: String::from("myusername"),
             password: String::from("secret-1"),
             records: vec![String::from("@")],
+            ip_types: vec![IpType::V4],
         };
 
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
