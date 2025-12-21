@@ -82,6 +82,13 @@ impl DnsResolver {
                 kind: Box::new(DnsErrorKind::UnexpectedResponse(0)),
             })
     }
+
+    pub async fn ip_lookup(&self, host: &str, ip_type: IpType) -> Result<IpAddr, DnsError> {
+        Ok(match ip_type {
+            IpType::V4 => self.ipv4_lookup(host).await?.into(),
+            IpType::V6 => self.ipv6_lookup(host).await?.into(),
+        })
+    }
 }
 
 #[derive(Debug)]

@@ -3,7 +3,7 @@ use crate::core::Updates;
 use crate::dns::DnsResolver;
 use crate::errors::DnessError;
 use log::{info, warn};
-use std::net::{IpAddr, Ipv4Addr};
+use std::net::IpAddr;
 
 #[derive(Debug)]
 pub struct HeProvider<'a> {
@@ -12,7 +12,7 @@ pub struct HeProvider<'a> {
 
 impl HeProvider<'_> {
     /// https://dns.he.net/docs.html
-    pub async fn update_domain(&self, host: &str, wan: Ipv4Addr) -> Result<(), DnessError> {
+    pub async fn update_domain(&self, host: &str, wan: IpAddr) -> Result<(), DnessError> {
         let base = self.config.base_url.trim_end_matches('/').to_string();
         let url = format!("{}/nic/update", base);
         let params = [
@@ -54,11 +54,6 @@ pub async fn update_domains(
 ) -> Result<Updates, DnessError> {
     // uses the same strategy as namecheap where we get the current records
     // via dns and check if they need to be updated
-    let IpAddr::V4(wan) = wan else {
-        return Err(DnessError::message(String::from(
-            "IPv6 not supported for He",
-        )));
-    };
     let resolver = DnsResolver::create_cloudflare().await?;
     let he = HeProvider { config };
 
@@ -72,7 +67,7 @@ pub async fn update_domains(
         };
 
         let dns_query = format!("{}.", &host_record);
-        let response = resolver.ipv4_lookup(&dns_query).await;
+        let response = resolver.ip_lookup(&dns_query, wan.into()).await;
 
         match response {
             Ok(ip) => {
@@ -104,6 +99,8 @@ pub async fn update_domains(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::IpType;
+    use std::net::Ipv4Addr;
 
     macro_rules! he_server {
         () => {{
@@ -138,6 +135,7 @@ mod tests {
             hostname: String::from("example.com"),
             password: String::from("secret-1"),
             records: vec![String::from("@")],
+            ip_types: vec![IpType::V4],
         };
 
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();

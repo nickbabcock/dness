@@ -1,4 +1,4 @@
-use crate::config::{DynuConfig, IpType};
+use crate::config::DynuConfig;
 use crate::core::Updates;
 use crate::dns::DnsResolver;
 use crate::errors::DnessError;
@@ -77,10 +77,7 @@ pub async fn update_domains(
             format!("{}.{}.", record, config.hostname)
         };
 
-        let response = match IpType::from(wan) {
-            IpType::V4 => resolver.ipv4_lookup(&dns_query).await.map(IpAddr::V4),
-            IpType::V6 => resolver.ipv6_lookup(&dns_query).await.map(IpAddr::V6),
-        };
+        let response = resolver.ip_lookup(&dns_query, wan.into()).await;
 
         match response {
             Ok(ip) => {
@@ -112,6 +109,7 @@ pub async fn update_domains(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::IpType;
     use std::net::Ipv4Addr;
 
     macro_rules! dynu_server {

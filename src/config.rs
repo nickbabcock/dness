@@ -124,6 +124,7 @@ impl DomainConfig {
         match self {
             DomainConfig::Cloudflare(c) => c.ip_types.clone(),
             DomainConfig::GoDaddy(c) => c.ip_types.clone(),
+            DomainConfig::He(c) => c.ip_types.clone(),
             DomainConfig::Dynu(c) => c.ip_types.clone(),
             _ => vec![IpType::V4],
         }
@@ -203,6 +204,8 @@ pub struct HeConfig {
     pub hostname: String,
     pub password: String,
     pub records: Vec<String>,
+    #[serde(default = "ipv4_only")]
+    pub ip_types: Vec<IpType>,
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -432,7 +435,8 @@ mod tests {
                 base_url: String::from("https://dyn.dns.he.net"),
                 hostname: String::from("test-dness-1.xyz"),
                 password: String::from("super_secret_password"),
-                records: vec![String::from("@"), String::from("sub")]
+                records: vec![String::from("@"), String::from("sub")],
+                ip_types: vec![IpType::V4]
             })
         );
     }
