@@ -12,19 +12,19 @@ When one has a server that is subjected to unpredictable IP address changes, suc
 
 There are plenty of dynamic dns clients, including the venerable [ddclient](https://github.com/ddclient/ddclient), but troublesome installation + perl system dependency resolution, and cache format errors have left much to be desired. Other solutions fall short, so dness was created with the following goals:
 
-## Features:
+## Features
 
 - ✔ Cross platform (Windows, Mac, Linux, ARM, BSD)
 - ✔ Zero dependencies (one can opt to dynamically link openssl when compiling from source)
 - ✔ A standard configuration ([TOML](https://github.com/toml-lang/toml)) that is similar to ddclient's
 - ✔ Support for multiple Dynamic DNS Services:
-   - [Cloudflare](#cloudflare)
-   - [GoDaddy](#godaddy)
-   - [Namecheap](#namecheap)
-   - [He.net](#henet)
-   - [No-IP](#no-ip)
-   - [Dynu](#dynu)
-   - [Porkbun](#porkbun)
+  - [Cloudflare](#cloudflare)
+  - [GoDaddy](#godaddy)
+  - [Namecheap](#namecheap)
+  - [Hurricane Electric (he.net)](#hurricane-electric-henet)
+  - [No-IP](#no-ip)
+  - [Dynu](#dynu)
+  - [Porkbun](#porkbun)
 - ✔ Permissively licensed
 
 ## Installation
@@ -76,7 +76,7 @@ No configuration file is necessary when only the WAN IP is desired.
 
 Sample output:
 
-```
+```text
 [INFO  trust_dns_proto::xfer::dns_exchange] sending message via: UDP(208.67.220.220:53)
 [INFO  dness] resolved address to 256.256.256.256 in 23ms
 [INFO  dness] processed all: (updated: 0, already current: 0, missing: 0) in 29ms
@@ -98,7 +98,7 @@ records = [
 
 Execute dness with the configuration:
 
-```
+```bash
 ./dness -c dness.conf
 ```
 
@@ -252,19 +252,19 @@ ddns_password = "super_secret_password"
 records = [ "@", "*", "sub" ]
 ```
 
-The namecheap services requires dynamic dns enabled in their UI.
+The Namecheap services requires dynamic dns enabled in their UI.
 
 Updating the dns entry works as follows:
 
 - A dns query is sent to cloudflare to check the IP of the record
-- If the IP is different than WAN then a request is sent to namecheap to update it
+- If the IP is different than WAN then a request is sent to Namecheap to update it
 - If the IP is the same, no action is taken
 
-This method suffers from natural flow of dns propagation. When namecheap receives the update, it may take up to an hour for cloudflare to see the new record. In the meantime, dness will keep updating namecheap servers with the WAN. This has no consequential side effects other than momentary confusion why updates are being sent to namecheap every 5 minutes.
+This method suffers from natural flow of dns propagation. When Namecheap receives the update, it may take up to an hour for cloudflare to see the new record. In the meantime, dness will keep updating Namecheap servers with the WAN. This has no consequential side effects other than momentary confusion why updates are being sent to Namecheap every 5 minutes.
 
 Namecheap does not support updating AAAA (IPv6) records through their dynamic DNS api.
 
-#### He.net
+#### Hurricane Electric (he.net)
 
 ```toml
 [[domains]]
