@@ -185,10 +185,14 @@ key = "deadbeef"
 # The zone is the domain name
 zone = "example.com"
 
-# List of A records found under the DNS tab that should be updated
+# List of records found under the DNS tab that should be updated
 records = [
     "n.example.com"
 ]
+
+# List of IP address types that should be updated, "4" = IPv4, "6" = IPv6.
+# Defaults to ["4"].
+ip_types = ["4", "6"]
 ```
 
 Cloudflare dynamic dns service works in three steps:
@@ -220,6 +224,10 @@ secret = "ef"
 
 # The records to update. "@" = "example.com", "a" = "a.example.com"
 records = [ "@", "a" ]
+
+# List of IP address types that should be updated, "4" = IPv4, "6" = IPv6.
+# Defaults to ["4"].
+ip_types = ["4", "6"]
 ```
 
 GoDaddy dynamic dns service works as the following:
@@ -252,7 +260,9 @@ Updating the dns entry works as follows:
 - If the IP is different than WAN then a request is sent to namecheap to update it
 - If the IP is the same, no action is taken
 
-This method suffers from natural flow of dns propagation. When namecheap receives the update, it may take up to an hour for cloudflare to see the new record. In the meantime, dness will keep updating namecheap servers with the WAN. This has no consequential side effects other than momentary confusion why updates are being sent to namecheap every 5 minutes. Future revisions of this provider may use another method (like API integration) if the current method proves deficient enough.
+This method suffers from natural flow of dns propagation. When namecheap receives the update, it may take up to an hour for cloudflare to see the new record. In the meantime, dness will keep updating namecheap servers with the WAN. This has no consequential side effects other than momentary confusion why updates are being sent to namecheap every 5 minutes.
+
+Namecheap does not support updating AAAA (IPv6) records through their dynamic DNS api.
 
 #### He.net
 
@@ -262,6 +272,7 @@ type = "he"
 hostname = "test-dness-1.xyz"
 password = "super_secret_password"
 records = [ "@", "sub" ]
+ip_types = ["4", "6"]
 ```
 
 [he.net](http://he.net/) follows the same flow as Namecheap (check the current record via DNS and update if necessary).
@@ -274,6 +285,7 @@ type = "noip"
 hostname = "dnesstest.hopto.org"
 username = "myemail@example.org"
 password = "super_secret_password"
+ip_types = ["4", "6"]
 ```
 
 #### Dynu
@@ -292,6 +304,10 @@ password = "IpUpdatePassword"
 # "@" = "test-dness.camdvr.org"
 # "sub = "sub.test-dness.camdvr.org"
 records = [ "@", "sub" ]
+
+# List of IP address types that should be updated, "4" = IPv4, "6" = IPv6.
+# Defaults to ["4"].
+ip_types = ["4", "6"]
 ```
 
 #### Porkbun
@@ -315,6 +331,10 @@ secret = "ef"
 # The records to update. "@" = "example.com", "a" = "a.example.com" "*" = "*.example.com"
 # Both "@" and "" are valid to configure root domain.
 records = [ "@", "a" ]
+
+# List of IP address types that should be updated, "4" = IPv4, "6" = IPv6.
+# Defaults to ["4"].
+ip_types = ["4", "6"]
 ```
 
 Porkbun dynamic dns service works similar to GoDaddy:
