@@ -1,11 +1,11 @@
-use crate::config::CloudflareConfig;
+use crate::config::{CloudflareConfig, IpType};
 use crate::core::Updates;
 use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::error;
 use std::fmt;
-use std::net::Ipv4Addr;
+use std::net::IpAddr;
 
 trait CloudflareAuthorizer: fmt::Debug {
     fn with_auth(&self, request_builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder;
@@ -234,7 +234,7 @@ impl CloudflareClient<'_> {
 
     // Grab all the sub domains in the zone, but since there can be many of them, cloudflare
     // paginates the results.
-    async fn paginate_domains(&self) -> Result<Vec<CloudflareDnsRecord>, ClError> {
+    async fn paginate_domains(&self, ip_type: IpType) -> Result<Vec<CloudflareDnsRecord>, ClError> {
         let mut done = false;
         let mut page = 0;
         let mut dns_records: Vec<CloudflareDnsRecord> = Vec::new();
@@ -252,7 +252,7 @@ impl CloudflareClient<'_> {
                 .client
                 .get(&record_url)
                 .query(&[("page", page)])
-                .query(&[("type", "A")]);
+                .query(&[("type", ip_type.record_type())]);
 
             request_builder = self.authorizer.with_auth(request_builder);
 
@@ -304,8 +304,8 @@ impl CloudflareClient<'_> {
         crate::core::log_missing_domains(&self.records, &actual, "cloudflare", &self.zone_name)
     }
 
-    async fn update(&self, addr: Ipv4Addr) -> Result<Updates, ClError> {
-        let mut dns_records = self.paginate_domains().await?;
+    async fn update(&self, addr: IpAddr) -> Result<Updates, ClError> {
+        let mut dns_records = self.paginate_domains(IpType::from(addr)).await?;
         let missing = self.log_missing_domains(&dns_records) as i32;
         let mut current = 0;
         let mut updated = 0;
@@ -315,7 +315,7 @@ impl CloudflareClient<'_> {
             .filter(|x| self.records.contains(&x.name));
 
         for record in recs {
-            match record.content.parse::<Ipv4Addr>() {
+            match record.content.parse::<IpAddr>() {
                 Ok(ip) => {
                     if ip != addr {
                         updated += 1;
@@ -335,7 +335,7 @@ impl CloudflareClient<'_> {
                 }
                 Err(ref e) => {
                     updated += 1;
-                    warn!("could not parse domain {} address {} as ipv4 -- will replace it. Original error: {}", record.name, record.content, e);
+                    warn!("could not parse domain {} address {} -- will replace it. Original error: {}", record.name, record.content, e);
                     self.update_record(record, addr).await?;
 
                     info!(
@@ -356,7 +356,7 @@ impl CloudflareClient<'_> {
     async fn update_record(
         &self,
         record: &CloudflareDnsRecord,
-        addr: Ipv4Addr,
+        addr: IpAddr,
     ) -> Result<(), ClError> {
         let url = format!(
             "https://api.cloudflare.com/client/v4/zones/{}/dns_records/{}",
@@ -409,7 +409,7 @@ impl CloudflareClient<'_> {
 pub async fn update_domains(
     client: &reqwest::Client,
     config: &CloudflareConfig,
-    addr: Ipv4Addr,
+    addr: IpAddr,
 ) -> Result<Updates, ClError> {
     CloudflareClient::create(client, config)
         .await?
@@ -466,8 +466,8 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_cloudflare_update_response() {
-        let json_str = &include_str!("../assets/cloudflare-update-response.json");
+    fn deserialize_cloudflare_update_a_response() {
+        let json_str = &include_str!("../assets/cloudflare-update-a-response.json");
         let response: CloudflareResponse<CloudflareDnsRecord> =
             serde_json::from_str(json_str).unwrap();
 
@@ -478,6 +478,27 @@ mod tests {
                     id: String::from("372e67954025e0ba6aaa6d586b9e0b59"),
                     name: String::from("example.com"),
                     content: String::from("198.51.100.4"),
+                }),
+                result_info: None,
+                success: true,
+                errors: vec![]
+            }
+        );
+    }
+
+    #[test]
+    fn deserialize_cloudflare_update_aaaa_response() {
+        let json_str = &include_str!("../assets/cloudflare-update-aaaa-response.json");
+        let response: CloudflareResponse<CloudflareDnsRecord> =
+            serde_json::from_str(json_str).unwrap();
+
+        assert_eq!(
+            response,
+            CloudflareResponse {
+                result: Some(CloudflareDnsRecord {
+                    id: String::from("372e67954025e0ba6aaa6d586b9e0b59"),
+                    name: String::from("example.com"),
+                    content: String::from("2600:1406:bc00:53::b81e:94ce"),
                 }),
                 result_info: None,
                 success: true,

@@ -5,6 +5,7 @@ use std::fmt;
 use std::fs::File;
 use std::io::Error as IoError;
 use std::io::Read;
+use std::net::IpAddr;
 use std::path::Path;
 use std::{collections::HashMap, error};
 
@@ -118,6 +119,48 @@ impl DomainConfig {
             DomainConfig::Porkbun(c) => format!("{} ({})", c.domain, "porkbun"),
         }
     }
+
+    pub fn get_ip_types(&self) -> Vec<IpType> {
+        match self {
+            DomainConfig::Cloudflare(c) => c.ip_types.clone(),
+            DomainConfig::GoDaddy(c) => c.ip_types.clone(),
+            DomainConfig::Namecheap(_) => vec![IpType::V4],
+            DomainConfig::He(c) => c.ip_types.clone(),
+            DomainConfig::NoIp(c) => c.ip_types.clone(),
+            DomainConfig::Dynu(c) => c.ip_types.clone(),
+            DomainConfig::Porkbun(c) => c.ip_types.clone(),
+        }
+    }
+}
+
+#[derive(Deserialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
+pub enum IpType {
+    #[serde(rename = "4")]
+    V4,
+    #[serde(rename = "6")]
+    V6,
+}
+
+impl IpType {
+    pub fn record_type(&self) -> &str {
+        match self {
+            IpType::V4 => "A",
+            IpType::V6 => "AAAA",
+        }
+    }
+}
+
+impl From<IpAddr> for IpType {
+    fn from(addr: IpAddr) -> IpType {
+        match addr {
+            IpAddr::V4(_) => IpType::V4,
+            IpAddr::V6(_) => IpType::V6,
+        }
+    }
+}
+
+fn ipv4_only() -> Vec<IpType> {
+    vec![IpType::V4]
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -128,6 +171,8 @@ pub struct CloudflareConfig {
     pub token: Option<String>,
     pub zone: String,
     pub records: Vec<String>,
+    #[serde(default = "ipv4_only")]
+    pub ip_types: Vec<IpType>,
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -139,6 +184,8 @@ pub struct GoDaddyConfig {
     pub secret: String,
     pub domain: String,
     pub records: Vec<String>,
+    #[serde(default = "ipv4_only")]
+    pub ip_types: Vec<IpType>,
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -159,6 +206,8 @@ pub struct HeConfig {
     pub hostname: String,
     pub password: String,
     pub records: Vec<String>,
+    #[serde(default = "ipv4_only")]
+    pub ip_types: Vec<IpType>,
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -169,6 +218,8 @@ pub struct NoIpConfig {
     pub username: String,
     pub password: String,
     pub hostname: String,
+    #[serde(default = "ipv4_only")]
+    pub ip_types: Vec<IpType>,
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -180,6 +231,8 @@ pub struct DynuConfig {
     pub username: String,
     pub password: String,
     pub records: Vec<String>,
+    #[serde(default = "ipv4_only")]
+    pub ip_types: Vec<IpType>,
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -191,6 +244,8 @@ pub struct PorkbunConfig {
     pub key: String,
     pub secret: String,
     pub records: Vec<String>,
+    #[serde(default = "ipv4_only")]
+    pub ip_types: Vec<IpType>,
 }
 
 fn godaddy_base_url() -> String {
@@ -291,10 +346,57 @@ mod tests {
                     key: None,
                     token: Some(String::from("dec0de")),
                     zone: String::from("example.com"),
-                    records: vec![String::from("n.example.com")]
+                    records: vec![String::from("n.example.com")],
+                    ip_types: vec![IpType::V4],
                 })]
             }
         );
+    }
+
+    #[test]
+    fn deserialize_config_ipv6() {
+        let toml_str = &include_str!("../assets/ipv6-config.toml");
+        let config: DnsConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(
+            config,
+            DnsConfig {
+                ip_resolver: String::from("opendns"),
+                log: LogConfig {
+                    level: LevelFilter::Info,
+                },
+                domains: vec![DomainConfig::Cloudflare(CloudflareConfig {
+                    email: None,
+                    key: None,
+                    token: Some(String::from("dec0de")),
+                    zone: String::from("example.com"),
+                    records: vec![String::from("n.example.com")],
+                    ip_types: vec![IpType::V6],
+                })]
+            }
+        );
+    }
+
+    #[test]
+    fn deserialize_config_dual_stack() {
+        let toml_str = &include_str!("../assets/dual-stack-config.toml");
+        let config: DnsConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(
+            config,
+            DnsConfig {
+                ip_resolver: String::from("opendns"),
+                log: LogConfig {
+                    level: LevelFilter::Info,
+                },
+                domains: vec![DomainConfig::Cloudflare(CloudflareConfig {
+                    email: None,
+                    key: None,
+                    token: Some(String::from("dec0de")),
+                    zone: String::from("example.com"),
+                    records: vec![String::from("n.example.com")],
+                    ip_types: vec![IpType::V4, IpType::V6],
+                })]
+            }
+        )
     }
 
     #[test]
@@ -308,7 +410,8 @@ mod tests {
                 domain: String::from("example.com"),
                 key: String::from("abc123"),
                 secret: String::from("ef"),
-                records: vec![String::from("@")]
+                records: vec![String::from("@")],
+                ip_types: vec![IpType::V4]
             })
         );
     }
@@ -338,7 +441,8 @@ mod tests {
                 base_url: String::from("https://dyn.dns.he.net"),
                 hostname: String::from("test-dness-1.xyz"),
                 password: String::from("super_secret_password"),
-                records: vec![String::from("@"), String::from("sub")]
+                records: vec![String::from("@"), String::from("sub")],
+                ip_types: vec![IpType::V4]
             })
         );
     }
@@ -360,7 +464,8 @@ mod tests {
                         key: None,
                         token: Some(String::from("dec0de")),
                         zone: String::from("example.com"),
-                        records: vec![String::from("n.example.com")]
+                        records: vec![String::from("n.example.com")],
+                        ip_types: vec![IpType::V4],
                     }),
                     DomainConfig::Cloudflare(CloudflareConfig {
                         email: Some(String::from("admin@example.com")),
@@ -370,7 +475,8 @@ mod tests {
                         records: vec![
                             String::from("n.example2.com"),
                             String::from("n2.example2.com")
-                        ]
+                        ],
+                        ip_types: vec![IpType::V4],
                     })
                 ]
             }
@@ -411,6 +517,7 @@ mod tests {
                 username: String::from("myemail@example.org"),
                 hostname: String::from("dnesstest.hopto.org"),
                 password: String::from("super_secret_password"),
+                ip_types: vec![IpType::V4],
             })
         );
     }
@@ -426,7 +533,8 @@ mod tests {
                 hostname: String::from("test-dness-1.xyz"),
                 username: String::from("MyUserName"),
                 password: String::from("IpUpdatePassword"),
-                records: vec![String::from("@"), String::from("sub")]
+                records: vec![String::from("@"), String::from("sub")],
+                ip_types: vec![IpType::V4]
             })
         );
     }

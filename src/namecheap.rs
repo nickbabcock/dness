@@ -3,7 +3,7 @@ use crate::core::Updates;
 use crate::dns::DnsResolver;
 use crate::errors::DnessError;
 use log::{info, warn};
-use std::net::Ipv4Addr;
+use std::net::{IpAddr, Ipv4Addr};
 
 #[derive(Debug)]
 pub struct NamecheapProvider<'a> {
@@ -48,7 +48,7 @@ impl NamecheapProvider<'_> {
 pub async fn update_domains(
     client: &reqwest::Client,
     config: &NamecheapConfig,
-    wan: Ipv4Addr,
+    wan: IpAddr,
 ) -> Result<Updates, DnessError> {
     // Use cloudflare's DNS to query all the configured records. Ideally we'd use dns
     // over tls for privacy purposes but that feature is experimental and we don't want to rely on
@@ -59,6 +59,11 @@ pub async fn update_domains(
     // invocations (cron, timers, etc) -- the dns record won't have propagated yet. I haven't seen
     // any issues with setting the namecheap record to an unchanged value, but it is less than
     // ideal. Namecheap does have a dns api that may be worth exploring.
+    let IpAddr::V4(wan) = wan else {
+        return Err(DnessError::message(String::from(
+            "IPv6 not supported for Namecheap",
+        )));
+    };
     let resolver = DnsResolver::create_cloudflare().await?;
     let namecheap = NamecheapProvider { client, config };
 
@@ -134,7 +139,7 @@ mod tests {
     async fn test_namecheap_update() {
         let (tx, addr) = namecheap_server!();
         let http_client = reqwest::Client::new();
-        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let new_ip = IpAddr::V4(Ipv4Addr::new(2, 2, 2, 2));
         let config = NamecheapConfig {
             base_url: format!("http://{}", addr),
             domain: String::from("example.com"),

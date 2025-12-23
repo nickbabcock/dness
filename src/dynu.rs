@@ -3,7 +3,7 @@ use crate::core::Updates;
 use crate::dns::DnsResolver;
 use crate::errors::DnessError;
 use log::{info, warn};
-use std::net::Ipv4Addr;
+use std::net::IpAddr;
 
 #[derive(Debug)]
 pub struct DynuProvider<'a> {
@@ -12,13 +12,21 @@ pub struct DynuProvider<'a> {
 }
 
 impl DynuProvider<'_> {
-    pub async fn update_domain(&self, host: &str, wan: Ipv4Addr) -> Result<(), DnessError> {
+    pub async fn update_domain(&self, host: &str, wan: IpAddr) -> Result<(), DnessError> {
         let base = self.config.base_url.trim_end_matches('/').to_string();
         let get_url = format!("{}/nic/update", base);
-        let mut params = vec![
-            ("hostname", self.config.hostname.clone()),
-            ("myip", wan.to_string()),
-        ];
+        let mut params = vec![("hostname", self.config.hostname.clone())];
+
+        match wan {
+            IpAddr::V4(ipv4_addr) => {
+                params.push(("myip", ipv4_addr.to_string()));
+                params.push(("myipv6", "no".to_owned()))
+            }
+            IpAddr::V6(ipv6_addr) => {
+                params.push(("myip", "no".to_owned()));
+                params.push(("myipv6", ipv6_addr.to_string()))
+            }
+        }
 
         if host != "@" {
             params.push(("alias", String::from(host)));
@@ -55,7 +63,7 @@ impl DynuProvider<'_> {
 pub async fn update_domains(
     client: &reqwest::Client,
     config: &DynuConfig,
-    wan: Ipv4Addr,
+    wan: IpAddr,
 ) -> Result<Updates, DnessError> {
     let resolver = DnsResolver::create_cloudflare().await?;
     let dynu_provider = DynuProvider { client, config };
@@ -69,7 +77,7 @@ pub async fn update_domains(
             format!("{}.{}.", record, config.hostname)
         };
 
-        let response = resolver.ipv4_lookup(&dns_query).await;
+        let response = resolver.ip_lookup(&dns_query, wan.into()).await;
 
         match response {
             Ok(ip) => {
@@ -101,6 +109,8 @@ pub async fn update_domains(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::IpType;
+    use std::net::Ipv4Addr;
 
     macro_rules! dynu_server {
         () => {{
@@ -129,13 +139,14 @@ mod tests {
     async fn test_dynu_update() {
         let (tx, addr) = dynu_server!();
         let http_client = reqwest::Client::new();
-        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let new_ip = IpAddr::V4(Ipv4Addr::new(2, 2, 2, 2));
         let config = DynuConfig {
             base_url: format!("http://{}", addr),
             hostname: String::from("example.com"),
             username: String::from("myusername"),
             password: String::from("secret-1"),
             records: vec![String::from("@")],
+            ip_types: vec![IpType::V4],
         };
 
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();

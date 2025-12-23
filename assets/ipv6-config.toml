@@ -1,0 +1,8 @@
+[[domains]]
+type = "cloudflare"
+token = "dec0de"
+zone = "example.com"
+records = [
+    "n.example.com"
+]
+ip_types = ["6"]

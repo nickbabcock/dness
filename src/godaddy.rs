@@ -1,4 +1,5 @@
 use crate::config::GoDaddyConfig;
+use crate::config::IpType;
 use crate::core::Updates;
 use crate::errors::DnessError;
 use log::{debug, info, warn};
@@ -6,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap as Map;
 use std::collections::HashSet;
-use std::net::Ipv4Addr;
+use std::net::IpAddr;
 
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 struct GoRecord {
@@ -41,8 +42,13 @@ impl GoClient<'_> {
         format!("sso-key {}:{}", self.key, self.secret)
     }
 
-    async fn fetch_records(&self) -> Result<Vec<GoRecord>, DnessError> {
-        let get_url = format!("{}/v1/domains/{}/records/A", self.base_url, self.domain);
+    async fn fetch_records(&self, ip_type: IpType) -> Result<Vec<GoRecord>, DnessError> {
+        let get_url = format!(
+            "{}/v1/domains/{}/records/{}",
+            self.base_url,
+            self.domain,
+            ip_type.record_type()
+        );
         let response = self
             .client
             .get(&get_url)
@@ -58,10 +64,13 @@ impl GoClient<'_> {
         Ok(response)
     }
 
-    async fn update_record(&self, record: &GoRecord, addr: Ipv4Addr) -> Result<(), DnessError> {
+    async fn update_record(&self, record: &GoRecord, addr: IpAddr) -> Result<(), DnessError> {
         let put_url = format!(
-            "{}/v1/domains/{}/records/A/{}",
-            self.base_url, self.domain, record.name
+            "{}/v1/domains/{}/records/{}/{}",
+            self.base_url,
+            self.domain,
+            IpType::from(addr).record_type(),
+            record.name
         );
 
         self.client
@@ -83,11 +92,11 @@ impl GoClient<'_> {
     async fn ensure_current_ip(
         &self,
         record: &GoRecord,
-        addr: Ipv4Addr,
+        addr: IpAddr,
     ) -> Result<Updates, DnessError> {
         let mut current = 0;
         let mut updated = 0;
-        match record.data.parse::<Ipv4Addr>() {
+        match record.data.parse::<IpAddr>() {
             Ok(ip) => {
                 if ip != addr {
                     updated += 1;
@@ -134,7 +143,7 @@ impl GoClient<'_> {
 pub async fn update_domains(
     client: &reqwest::Client,
     config: &GoDaddyConfig,
-    addr: Ipv4Addr,
+    addr: IpAddr,
 ) -> Result<Updates, DnessError> {
     let go_client = GoClient {
         base_url: config.base_url.trim_end_matches('/').to_string(),
@@ -145,7 +154,7 @@ pub async fn update_domains(
         client,
     };
 
-    let records = go_client.fetch_records().await?;
+    let records = go_client.fetch_records(IpType::from(addr)).await?;
     let missing = go_client.log_missing_domains(&records) as i32;
     let mut summary = Updates {
         missing,
@@ -220,6 +229,12 @@ mod tests {
                 ),
                 "/v1/domains/domain-2.com/records/A/@" => Response::text("Nice job!"),
                 "/v1/domains/domain-2.com/records/A/a" => Response::text("Nice job!"),
+                "/v1/domains/domain-3.com/records/AAAA" => Response::from_data(
+                    "application/json",
+                    r#"[{"name": "@", "data": "2001:db8::2"}, {"name": "c", "data": "2001:db8::1"}]"#,
+                ),
+                "/v1/domains/domain-3.com/records/AAAA/@" => Response::text("Nice job!"),
+                "/v1/domains/domain-3.com/records/AAAA/c" => Response::text("Nice job!"),
                 _ => Response::empty_404(),
             })
             .unwrap();
@@ -240,13 +255,14 @@ mod tests {
     async fn test_godaddy_unparseable_ipv4() {
         let (tx, addr) = godaddy_rouille_server!();
         let http_client = reqwest::Client::new();
-        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let new_ip = IpAddr::V4(std::net::Ipv4Addr::new(2, 2, 2, 2));
         let config = GoDaddyConfig {
             base_url: format!("http://{}", addr),
             domain: String::from("domain-1.com"),
             key: String::from("key-1"),
             secret: String::from("secret-1"),
             records: vec![String::from("@")],
+            ip_types: vec![IpType::V4],
         };
 
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
@@ -266,13 +282,41 @@ mod tests {
     async fn test_godaddy_grabbag() {
         let (tx, addr) = godaddy_rouille_server!();
         let http_client = reqwest::Client::new();
-        let new_ip = Ipv4Addr::new(2, 2, 2, 2);
+        let new_ip = IpAddr::V4(std::net::Ipv4Addr::new(2, 2, 2, 2));
         let config = GoDaddyConfig {
             base_url: format!("http://{}", addr),
             domain: String::from("domain-2.com"),
             key: String::from("key-1"),
             secret: String::from("secret-1"),
             records: vec![String::from("@"), String::from("a"), String::from("b")],
+            ip_types: vec![IpType::V4],
+        };
+
+        let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
+        tx.send(()).unwrap();
+
+        assert_eq!(
+            summary,
+            Updates {
+                current: 1,
+                updated: 1,
+                missing: 1,
+            }
+        );
+    }
+
+    #[tokio::test]
+    async fn test_godaddy_grabbag_ipv6() {
+        let (tx, addr) = godaddy_rouille_server!();
+        let http_client = reqwest::Client::new();
+        let new_ip = IpAddr::V6(std::net::Ipv6Addr::new(0x2001, 0xdb8, 0, 0, 0, 0, 0, 2));
+        let config = GoDaddyConfig {
+            base_url: format!("http://{}", addr),
+            domain: String::from("domain-3.com"),
+            key: String::from("key-1"),
+            secret: String::from("secret-1"),
+            records: vec![String::from("@"), String::from("c"), String::from("d")],
+            ip_types: vec![IpType::V6],
         };
 
         let summary = update_domains(&http_client, &config, new_ip).await.unwrap();
