@@ -1,3 +1,16 @@
+## 0.6.0 - 2025-12-23
+
+- Add support for querying current IPv6 and updating AAAA records at the following providers:
+  - Cloudflare
+  - Dynu
+  - GoDaddy
+  - Hurricane Electric
+  - No-IP
+  - Porkbun
+- Update hickory DNS resolver to latest
+- Drop support for native-tls builds and only support Rustls
+- Add musl aarch64-linux builds
+
 ## 0.5.7 - 2024-10-15
 
 - Update default porkbun API domain to `api.porkbun.com`
