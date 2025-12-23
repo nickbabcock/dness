@@ -69,7 +69,6 @@ jobs:
       run: |
         cargo install cross
         echo "CARGO=cross" >> $GITHUB_ENV
-        echo "FEATURES=--features vendored-openssl" >> $GITHUB_ENV
 
     - name: Setup cross compilation (non-linux)
       if: matrix.os != 'ubuntu-latest'

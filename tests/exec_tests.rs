@@ -11,7 +11,7 @@ fn resolve_wan_on_no_arguments() {
         Err(e) => {
             let output = e.as_output().unwrap();
             let stdout = std::str::from_utf8(&output.stdout).unwrap();
-            assert!(stdout.contains("no record found for Query"));
+            assert!(stdout.contains("no records found for Query"));
         }
     }
 }

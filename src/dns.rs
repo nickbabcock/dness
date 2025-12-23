@@ -1,12 +1,13 @@
 use crate::config::IpType;
 use crate::errors::{DnsError, DnsErrorKind};
-use hickory_resolver::config::{NameServerConfigGroup, ResolverConfig, ResolverOpts};
-use hickory_resolver::TokioAsyncResolver;
+use hickory_resolver::config::{NameServerConfigGroup, ResolverConfig};
+use hickory_resolver::name_server::TokioConnectionProvider;
+use hickory_resolver::TokioResolver;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 #[derive(Debug)]
 pub struct DnsResolver {
-    resolver: TokioAsyncResolver,
+    resolver: TokioResolver,
 }
 
 impl DnsResolver {
@@ -38,7 +39,8 @@ impl DnsResolver {
     }
 
     pub async fn from_config(config: ResolverConfig) -> Result<Self, DnsError> {
-        let resolver = TokioAsyncResolver::tokio(config, ResolverOpts::default());
+        let resolver = TokioResolver::builder_with_config(config, TokioConnectionProvider::default())
+            .build();
 
         Ok(DnsResolver { resolver })
     }
@@ -132,14 +134,14 @@ mod tests {
             Err(e) => {
                 match e.kind.as_ref() {
                     DnsErrorKind::DnsResolve(e) => {
-                        match e.kind() {
-                            hickory_resolver::error::ResolveErrorKind::NoRecordsFound {
-                                ..
-                            } => {
+                        // Check if this is a "no records found" error (e.g., CGNAT scenario)
+                        if let hickory_resolver::ResolveErrorKind::Proto(proto_err) = e.kind() {
+                            if proto_err.is_no_records_found() {
                                 // This is fine, just means we're behind a CGNAT
+                                return;
                             }
-                            _ => panic!("unexpected error: {}", e),
                         }
+                        panic!("unexpected DNS error: {}", e);
                     }
                     DnsErrorKind::UnexpectedResponse(_) => {
                         panic!("unexpected response: {}", e);
@@ -161,14 +163,14 @@ mod tests {
             Err(e) => {
                 match e.kind.as_ref() {
                     DnsErrorKind::DnsResolve(e) => {
-                        match e.kind() {
-                            hickory_resolver::error::ResolveErrorKind::NoRecordsFound {
-                                ..
-                            } => {
+                        // Check if this is a "no records found" error (e.g., CGNAT scenario)
+                        if let hickory_resolver::ResolveErrorKind::Proto(proto_err) = e.kind() {
+                            if proto_err.is_no_records_found() {
                                 // This is fine, just means we're behind a CGNAT
+                                return;
                             }
-                            _ => panic!("unexpected error: {}", e),
                         }
+                        panic!("unexpected DNS error: {}", e);
                     }
                     DnsErrorKind::UnexpectedResponse(_) => {
                         panic!("unexpected response: {}", e);

@@ -15,7 +15,7 @@ There are plenty of dynamic dns clients, including the venerable [ddclient](http
 ## Features
 
 - ✔ Cross platform (Windows, Mac, Linux, ARM, BSD)
-- ✔ Zero dependencies (one can opt to dynamically link openssl when compiling from source)
+- ✔ Zero system runtimes dependencies
 - ✔ A standard configuration ([TOML](https://github.com/toml-lang/toml)) that is similar to ddclient's
 - ✔ Support for multiple Dynamic DNS Services:
   - [Cloudflare](#cloudflare)
