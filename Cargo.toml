@@ -1,6 +1,6 @@
 [package]
 name = "dness"
-version = "0.5.7"
+version = "0.6.0"
 authors = ["Nick Babcock <nbabcock19@hotmail.com>"]
 description = "a dynamic dns client"
 homepage = "https://github.com/nickbabcock/dness"
@@ -11,13 +11,12 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
-hickory-resolver = { version = "0.24.2", features = ["tokio-runtime"] }
-reqwest = { version = "0.12", default-features = false, features = ["json"] }
+hickory-resolver = { version = "0.25", features = ["tokio"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls-webpki-roots"] }
 serde_json = "1.0"
 toml = "0.8"
 chrono = "0.4"
 tokio = { version = "1", features = ["macros"] }
-openssl = { version = '0.10', optional = true }
 handlebars = "6.1"
 clap = { version = "4.4.6", features = ["derive"] }
 futures = "0.3"
@@ -34,9 +33,7 @@ version = "0.4"
 features = ["serde"]
 
 [features]
-default = ["reqwest/default-tls", "hickory-resolver/dns-over-native-tls"]
-vendored-openssl = ["openssl/vendored"]
-rustls = ["reqwest/rustls-tls", "hickory-resolver/dns-over-rustls"]
+default = []
 
 # Disable logging timestamp info (ie: the humantime feature) as mechanisms like
 # systemd / journald will show the timestamp that received the log line at.
@@ -54,7 +51,6 @@ rouille = "3"
 extended-description = """dness is a command line dynamic dns client"""
 section = "utility"
 priority = "optional"
-features = ["vendored-openssl"]
 provides = "dness"
 conflicts = "dness-musl"
 assets = [

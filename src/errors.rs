@@ -1,6 +1,6 @@
 use std::error;
 use std::fmt;
-use hickory_resolver::error::ResolveError;
+use hickory_resolver::ResolveError;
 
 #[derive(Debug)]
 pub enum DnessErrorKind {
