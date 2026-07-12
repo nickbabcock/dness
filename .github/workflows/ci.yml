@@ -56,7 +56,7 @@ jobs:
           os: windows-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Set target environment
       shell: bash
@@ -114,7 +114,7 @@ jobs:
           echo "ASSET=$STAGING.tar.gz" >> $GITHUB_ENV
         fi
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         path: ${{ env.ASSET }}
         name: ${{ env.ASSET }}
@@ -124,7 +124,7 @@ jobs:
       if: matrix.build == 'x86_64-unknown-linux-musl'
       run: echo "ASSET=$(basename target/${{ env.TARGET_TRIPLE}}/debian/*.deb)" >> $GITHUB_ENV
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       if: matrix.build == 'x86_64-unknown-linux-musl'
       with:
         path: target/${{ env.TARGET_TRIPLE}}/debian/*.deb
@@ -135,8 +135,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/download-artifact@v4
+    - uses: actions/checkout@v7
+    - uses: actions/download-artifact@v8
       with:
         path: artifacts-temp
     - name: Flatten artifacts
@@ -146,7 +146,7 @@ jobs:
         ls -lR artifacts
     - name: Create Release
       if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
-      uses: actions/github-script@v6
+      uses: actions/github-script@v9
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
