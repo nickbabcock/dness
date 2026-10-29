@@ -1,3 +1,7 @@
+## 0.6.1 - 2026-10-28
+
+- Update TLS dependencies to remove trust in eMudhra certificates.
+
 ## 0.6.0 - 2025-12-23
 
 - Add support for querying current IPv6 and updating AAAA records at the following providers:
