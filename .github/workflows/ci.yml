@@ -79,6 +79,9 @@ jobs:
 
     - name: Tests
       if: matrix.run_test != 'false'
+      env:
+        # Docker 29 blocks socketcall, which i686 glibc uses to open sockets.
+        CROSS_CONTAINER_OPTS: --security-opt seccomp=unconfined
       run: ${{ env.CARGO }} test ${{ env.FEATURES }} --verbose ${{ env.TARGET_FLAG }}
 
     - name: Release Build
